@@ -41,14 +41,16 @@ export const siteTypeOptions = [
   { title: 'Open-pit mine', value: 'open-pit' },
 ]
 
-export function siteTypeField(opts: { name?: string; title?: string; initial?: boolean } = {}) {
+export function siteTypeField(
+  opts: { name?: string; title?: string; initial?: boolean; optional?: boolean } = {},
+) {
   return defineField({
     name: opts.name ?? 'siteType',
     title: opts.title ?? 'Site type',
     type: 'string',
     options: { list: siteTypeOptions, layout: 'radio', direction: 'horizontal' },
     ...(opts.initial ? { initialValue: 'refinery' } : {}),
-    validation: (rule) => rule.required(),
+    validation: (rule) => (opts.optional ? rule : rule.required()),
   })
 }
 

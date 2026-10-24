@@ -185,6 +185,7 @@ export const featureGrid = defineType({
   fields: [
     textField({ name: 'heading', title: 'Heading', max: 90 }),
     textField({ name: 'intro', title: 'Intro', max: 280, optional: true }),
+    siteTypeField({ title: 'Sample report shown beside the heading', optional: true }),
     defineField({
       name: 'features',
       title: 'Capabilities',
