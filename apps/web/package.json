@@ -1,0 +1,33 @@
+{
+  "name": "@pageforge/web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hoverline marketing site, Sanity Studio and the PageForge Factory dashboard.",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit"
+  },
+  "dependencies": {
+    "@pageforge/agents": "workspace:*",
+    "@pageforge/blocks": "workspace:*",
+    "@pageforge/qa": "workspace:*",
+    "@pageforge/ui": "workspace:*",
+    "next": "16.4.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.18.0",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.4.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9.3"
+  }
+}

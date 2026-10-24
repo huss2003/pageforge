@@ -1,0 +1,17 @@
+{
+  "name": "@pageforge/agents",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Planner, writer and fixer agents that turn a brief into a validated page.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

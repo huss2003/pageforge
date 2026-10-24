@@ -1,0 +1,39 @@
+@import 'tailwindcss';
+@import '@pageforge/ui/theme.css';
+
+/* Let Tailwind see class names used inside workspace packages. */
+@source '../../../packages/ui/src';
+@source '../../../packages/blocks/src';
+
+/* One orchestrated moment: the hero flight route draws itself on load. */
+@keyframes route-draw {
+  from {
+    stroke-dashoffset: var(--route-length);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes waypoint-in {
+  from {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.route-path {
+  --route-length: 1400;
+  stroke-dasharray: var(--route-length);
+  animation: route-draw 2.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s both;
+}
+
+.route-waypoint {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: waypoint-in 0.35s ease-out both;
+}

@@ -1,0 +1,150 @@
+/*
+ * Hoverline theme for Tailwind CSS v4.
+ * Import after `@import "tailwindcss";` in the app stylesheet.
+ *
+ * Concept: aeronautical survey chart.
+ *  - paper / ink         base surface and text
+ *  - route (magenta)     the one accent: flight routes, primary actions, focus
+ *  - contour (sage)      secondary lines, site-plan detail, quiet data
+ *  - signal (amber)      findings and warnings only — never decoration
+ *
+ * Semantic tokens (surface, fg, accent…) switch for dark mode; raw palette
+ * tokens stay fixed so illustrations can opt out of theming.
+ */
+
+@theme {
+  /* Raw palette */
+  --color-paper: #edf0ec;
+  --color-paper-raised: #f7f8f5;
+  --color-ink: #14233a;
+  --color-ink-muted: #4a5768;
+  --color-rule: #c9cfc8;
+  --color-route: #b4246b;
+  --color-route-strong: #8e1a53;
+  --color-contour: #7c8a6e;
+  --color-signal: #d99a1e;
+  --color-night: #0f1b2b;
+  --color-night-raised: #16263a;
+  --color-night-ink: #e4e8e2;
+  --color-night-route: #e0569a;
+
+  /* Semantic (light defaults, overridden for dark below) */
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-fg: var(--accent-fg);
+
+  /* Type: one family, two widths. Display uses the expanded cut. */
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  /* Modular scale, ratio 1.25 (major third), base 17px */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1.0625rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.328rem;
+  --text-lg--line-height: 1.45;
+  --text-xl: 1.66rem;
+  --text-xl--line-height: 1.3;
+  --text-2xl: 2.075rem;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 2.594rem;
+  --text-3xl--line-height: 1.1;
+  --text-4xl: 3.242rem;
+  --text-4xl--line-height: 1.04;
+  --text-5xl: 4.053rem;
+  --text-5xl--line-height: 1;
+
+  /* Radii carry hierarchy: controls are crisp, media frames are softer. */
+  --radius-control: 3px;
+  --radius-media: 10px;
+
+  /* Reading measure */
+  --container-measure: 68ch;
+}
+
+:root {
+  --surface: var(--color-paper);
+  --surface-raised: var(--color-paper-raised);
+  --fg: var(--color-ink);
+  --fg-muted: var(--color-ink-muted);
+  --line: var(--color-rule);
+  --accent: var(--color-route);
+  --accent-strong: var(--color-route-strong);
+  --accent-fg: #ffffff;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --surface: var(--color-night);
+    --surface-raised: var(--color-night-raised);
+    --fg: var(--color-night-ink);
+    --fg-muted: #a7b0b8;
+    --line: #2b3b50;
+    --accent: var(--color-night-route);
+    --accent-strong: #f07ab2;
+    --accent-fg: #14233a;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --surface: var(--color-night);
+  --surface-raised: var(--color-night-raised);
+  --fg: var(--color-night-ink);
+  --fg-muted: #a7b0b8;
+  --line: #2b3b50;
+  --accent: var(--color-night-route);
+  --accent-strong: #f07ab2;
+  --accent-fg: #14233a;
+  color-scheme: dark;
+}
+
+@layer base {
+  html {
+    background: var(--surface);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    font-variant-numeric: tabular-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-stretch: 125%;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}

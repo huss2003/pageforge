@@ -1,0 +1,17 @@
+{
+  "name": "@pageforge/blocks",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Block registry: each block's React component, Zod schema, Sanity schema and AI usage note.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}
