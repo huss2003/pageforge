@@ -87,6 +87,19 @@ export function validateClaims(
   )
 
   const live = claims.filter((c) => c.status !== 'rejected')
+  // Text of the facts each valid claim cites: a number in a sibling field of
+  // the same item (stats[0].value next to a claim on stats[0].basis) is
+  // covered when that claim's cited fact contains it.
+  const citedText = new Map<CheckableClaim, string>()
+  claims.forEach((c, i) => {
+    if (c.status === 'rejected' || !checks[i]!.ok) return
+    const parts = c.sources.map((s) =>
+      s.type === 'product_fact'
+        ? (productById.get(s.factId)?.text ?? '')
+        : (accountById.get(s.sourceFactId)?.quote ?? ''),
+    )
+    citedText.set(c, parts.join(' '))
+  })
   const unsourced: UnsourcedClaim[] = []
   const seen = new Set<string>()
   for (const block of page.blocks) {
@@ -96,7 +109,9 @@ export function validateClaims(
         const covered =
           live.some(
             (c) =>
-              c.blockKey === block._key && fieldRoot(c.field) === root && tokenIn(token, c.text),
+              c.blockKey === block._key &&
+              fieldRoot(c.field) === root &&
+              (tokenIn(token, c.text) || tokenIn(token, citedText.get(c) ?? '')),
           ) ||
           unsourced.some(
             (u) =>

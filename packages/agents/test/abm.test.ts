@@ -177,6 +177,41 @@ describe('validateClaims rules', () => {
     sources: [{ type: 'product_fact', factId: 'stat:patrol-coverage', label: 'x' }],
   }
 
+  it('covers a stat value through a claim on the same stat that cites the fact', () => {
+    const p: Page = {
+      ...page(),
+      blocks: [
+        ...page().blocks,
+        {
+          _key: 's',
+          _type: 'statsBand',
+          heading: 'What a dock does',
+          stats: [
+            {
+              value: '7.5',
+              unit: 'km',
+              label: 'of perimeter covered on each patrol flight',
+              basis: 'Route length of the standard port perimeter patrol, 2025 pilot sites',
+            },
+          ],
+        },
+      ],
+    }
+    const basis: CheckableClaim = {
+      blockKey: 's',
+      field: 'stats[0].basis',
+      text: 'Route length of the standard port perimeter patrol, 2025 pilot sites',
+      kind: 'product_fact',
+      sources: [{ type: 'product_fact', factId: 'stat:patrol-coverage', label: 'x' }],
+    }
+    const v = validateClaims(p, [base, basis], opts)
+    expect(v.checks[1]!.ok).toBe(true)
+    expect(v.unsourced.filter((u) => u.claim.blockKey === 's')).toEqual([])
+    // Without the sourced sibling claim the value is flagged.
+    const bare = validateClaims(p, [base], opts)
+    expect(bare.unsourced.some((u) => u.claim.field === 'stats[0].value')).toBe(true)
+  })
+
   it('accepts a product claim whose numbers are in the cited fact', () => {
     const v = validateClaims(page(), [base], opts)
     expect(v.checks[0]).toEqual({ ok: true, reasons: [] })
