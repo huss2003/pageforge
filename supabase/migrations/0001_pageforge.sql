@@ -109,9 +109,10 @@ end;
 $$;
 
 revoke all on function public.pf_hit_rate_limit(text, int) from public, anon, authenticated;
+grant execute on function public.pf_hit_rate_limit(text, int) to service_role;
 
 create or replace function public.pf_touch_updated_at()
-returns trigger language plpgsql as $$
+returns trigger language plpgsql set search_path = public as $$
 begin
   new.updated_at = now();
   return new;
