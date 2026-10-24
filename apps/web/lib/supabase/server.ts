@@ -1,6 +1,6 @@
 import 'server-only'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
-import { getConfig } from '@/lib/factory/config'
+import { secretEnv } from '@/lib/env'
 
 /**
  * Server-side Supabase client using the secret key. Row level security is on
@@ -8,18 +8,19 @@ import { getConfig } from '@/lib/factory/config'
  * Returns null when Supabase is not configured.
  */
 export function getSupabaseAdmin(): SupabaseClient | null {
-  const config = getConfig().supabase
-  if (!config) return null
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
+  const secretKey = secretEnv('SUPABASE_SECRET_KEY')
+  if (!url || !secretKey) return null
   const g = globalThis as typeof globalThis & {
     __pfSupabase?: { key: string; client: SupabaseClient }
   }
-  const key = `${config.url}|${config.secretKey.slice(-6)}`
+  const key = `${url}|${secretKey.slice(-6)}`
   if (g.__pfSupabase?.key !== key) {
     g.__pfSupabase = {
       key,
-      client: createClient(config.url, config.secretKey, {
+      client: createClient(url, secretKey, {
         auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-        global: { headers: { 'x-application-name': 'pageforge-factory' } },
+        global: { headers: { 'x-application-name': 'pageforge-abm' } },
       }),
     }
   }

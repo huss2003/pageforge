@@ -30,3 +30,4 @@ test-results/
 # misc
 .DS_Store
 *.log
+apps/web/AGENTS.md

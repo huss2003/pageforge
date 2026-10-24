@@ -16,11 +16,9 @@ const SECRET_NAMES = [
   'GEMINI_API_KEY',
   'GROQ_API_KEY',
   'TURNSTILE_SECRET_KEY',
-  'GITHUB_QA_DISPATCH_TOKEN',
-  'QA_CALLBACK_SECRET',
   'FACTORY_ADMIN_PASSWORD',
   'SESSION_SECRET',
-  'PREVIEW_SECRET',
+  'HUBSPOT_PRIVATE_APP_TOKEN',
 ] as const
 
 export type SecretName = (typeof SECRET_NAMES)[number]
@@ -42,6 +40,7 @@ const PATTERNS: RegExp[] = [
   /\bgithub_pat_[A-Za-z0-9_]{20,}\b/g, // GitHub fine-grained tokens
   /\bgh[pousr]_[A-Za-z0-9]{20,}\b/g, // GitHub classic tokens
   /\b0x4[A-Za-z0-9_-]{30,}\b/g, // Turnstile secret keys
+  /\bpat-(?:na|eu|ap)\d-[0-9a-f-]{20,}\b/gi, // HubSpot private app tokens
 ]
 
 /** Replace every configured secret value and credential-shaped string with [redacted]. */

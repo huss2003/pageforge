@@ -155,6 +155,45 @@ describe('brand facts', () => {
     )
   })
 
+  it('covers port and solar-farm sites with assets, findings and route facts', () => {
+    for (const site of ['port', 'solar-farm'] as const) {
+      const s = facts.siteTypes[site]
+      expect(s.assets.length).toBeGreaterThanOrEqual(5)
+      expect(s.typicalFindings.length).toBeGreaterThanOrEqual(5)
+      expect(s.routeFacts.length).toBeGreaterThanOrEqual(3)
+    }
+    const port = JSON.stringify(facts.siteTypes.port).toLowerCase()
+    for (const term of ['perimeter', 'container', 'crane', 'berth', 'gate'])
+      expect(port).toContain(term)
+    const solar = JSON.stringify(facts.siteTypes['solar-farm']).toLowerCase()
+    for (const term of ['string', 'hot cell', 'soiling', 'vegetation', 'inverter'])
+      expect(solar).toContain(term)
+  })
+
+  it('has port security and solar capabilities and stats with an honest basis', () => {
+    const caps = facts.capabilities.map((c) => c.id)
+    expect(caps).toEqual(
+      expect.arrayContaining([
+        'perimeter-patrol',
+        'after-hours-berths',
+        'security-handoff',
+        'string-thermal',
+        'soiling-vegetation',
+      ]),
+    )
+    for (const id of [
+      'patrol-coverage',
+      'night-patrols',
+      'solar-survey-rate',
+      'solar-faults-found',
+    ]) {
+      const stat = facts.stats.find((s) => s.id === id)
+      expect(stat, id).toBeDefined()
+      // A basis says where the number comes from: a period, a site set or a method.
+      expect(stat!.basis).toMatch(/20\d\d|sites|flown/)
+    }
+  })
+
   it('ids are unique within each list', () => {
     const lists = [
       facts.capabilities,

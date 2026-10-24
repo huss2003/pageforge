@@ -15,7 +15,7 @@ export const facts: BrandFacts = {
   company: {
     name: 'Hoverline',
     oneLiner:
-      'Dock-based drones that fly scheduled inspection routes over refineries, substations and open-pit mines.',
+      'Dock-based drones that fly scheduled inspection routes over refineries, substations, open-pit mines, ports and solar farms.',
     disclosure:
       'Hoverline is a fictional company. This site is a portfolio project built with PageForge.',
   },
@@ -93,6 +93,53 @@ export const facts: BrandFacts = {
         { label: 'Cadence', value: 'Daily, before first shift' },
       ],
     },
+    port: {
+      label: 'Port terminal',
+      assets: [
+        'Perimeter fence lines and gates',
+        'Container stacks and reefer rows',
+        'Ship-to-shore and yard cranes',
+        'Berths, quay walls and fenders',
+        'Lighting masts and CCTV poles',
+        'Truck gates and empty-container depots',
+      ],
+      typicalFindings: [
+        'Damaged fence panel or open gate on the perimeter',
+        'Person or vehicle in a closed area after hours',
+        'Hot motor or brake on a quay crane',
+        'Container door open in a stack row',
+        'Damaged fender or quay-wall spalling at a berth',
+      ],
+      routeFacts: [
+        { label: 'Perimeter patrol', value: '7.5 km per flight' },
+        { label: 'Flight time', value: '34 min' },
+        { label: 'Berth check', value: 'Every berth, every 2 hours after dark' },
+        { label: 'Cadence', value: 'Scheduled patrols plus on-demand flights' },
+      ],
+    },
+    'solar-farm': {
+      label: 'Solar farm',
+      assets: [
+        'Module strings and tracker rows',
+        'Combiner boxes',
+        'Inverter and transformer stations',
+        'Cable trenches and access roads',
+        'Perimeter fence and vegetation buffer',
+      ],
+      typicalFindings: [
+        'String running cold on thermal: open circuit or blown fuse',
+        'Hot cell or bypass-diode failure on a module',
+        'Soiling band along the lower edge of a row',
+        'Vegetation shading the front row',
+        'Hot terminal inside an inverter station',
+      ],
+      routeFacts: [
+        { label: 'Area per flight', value: 'Up to 60 MW of modules' },
+        { label: 'Flight time', value: '38 min' },
+        { label: 'Thermal resolution', value: 'String and cell level' },
+        { label: 'Cadence', value: 'Weekly thermal, monthly full survey' },
+      ],
+    },
   },
 
   capabilities: [
@@ -163,6 +210,36 @@ export const facts: BrandFacts = {
         'No-fly zones around flares, cranes and blasting areas are set in the site plan. The drone returns to the dock when wind or visibility drop below limits.',
     },
     {
+      id: 'perimeter-patrol',
+      title: 'Perimeter patrols on a schedule',
+      detail:
+        'The drone flies the fence line, gates and closed areas on a fixed schedule, day and night, and flags breaks, open gates and people where none should be.',
+    },
+    {
+      id: 'after-hours-berths',
+      title: 'After-hours berth and quay checks',
+      detail:
+        'Night flights over berths, quay cranes and container stacks use thermal imaging, so a person, vehicle or open container door shows up without floodlights.',
+    },
+    {
+      id: 'security-handoff',
+      title: 'Alerts go to your security team',
+      detail:
+        'Security findings reach your control room with the location, a thermal clip and the zoom image. Your officers decide what happens next; the drone never confronts anyone.',
+    },
+    {
+      id: 'string-thermal',
+      title: 'String-level thermal for solar',
+      detail:
+        'Thermal flights resolve individual strings and cells, so cold strings, hot cells and failed bypass diodes are mapped to their row and tracker.',
+    },
+    {
+      id: 'soiling-vegetation',
+      title: 'Soiling and vegetation mapping',
+      detail:
+        'Visual surveys map soiling bands and vegetation shading by row, so cleaning and mowing crews go only where output is being lost.',
+    },
+    {
       id: 'data-ownership',
       title: 'Your data stays yours',
       detail:
@@ -231,6 +308,33 @@ export const facts: BrandFacts = {
       unit: 'mm',
       label: 'slope movement resolution from repeat LiDAR surveys',
       basis: 'Checked against survey prisms at three mine sites',
+    },
+    {
+      id: 'patrol-coverage',
+      value: '7.5',
+      unit: 'km',
+      label: 'of perimeter covered on each patrol flight',
+      basis: 'Route length of the standard port perimeter patrol, 2025 pilot sites',
+    },
+    {
+      id: 'night-patrols',
+      value: '6',
+      label: 'scheduled patrol flights a night at port pilot sites',
+      basis: 'Median across port pilot sites, October 2025 to March 2026',
+    },
+    {
+      id: 'solar-survey-rate',
+      value: '60',
+      unit: 'MW',
+      label: 'of modules surveyed per flight at string-level thermal',
+      basis: 'Single-axis tracker sites flown at 60 m, 2025',
+    },
+    {
+      id: 'solar-faults-found',
+      value: '2.3',
+      unit: '%',
+      label: 'of strings flagged on a first thermal survey',
+      basis: 'Median across first surveys at four solar sites, 2025; varies with site age',
     },
   ],
 
@@ -501,6 +605,20 @@ export const facts: BrandFacts = {
       answer:
         'It keeps the minimum approach distance set for each voltage class in your site plan, and the zoom camera reads connectors from a 40 m standoff. Nothing is de-energised for a flight.',
       tags: ['substation', 'safety'],
+    },
+    {
+      id: 'port-security-role',
+      question: 'Does the drone replace our security officers?',
+      answer:
+        'No. It patrols the fence line and closed areas and sends what it sees to your control room. Your officers decide whether to respond, and the drone never approaches or follows a person.',
+      tags: ['security', 'port', 'operations'],
+    },
+    {
+      id: 'night-flights',
+      question: 'Can it fly at night over an operating terminal?',
+      answer:
+        'Yes, under the BVLOS waiver for the site. Night routes keep clear of crane booms and ship superstructures using geofences set in the site plan, and thermal imaging means it needs no floodlights.',
+      tags: ['security', 'port', 'airspace'],
     },
   ],
 

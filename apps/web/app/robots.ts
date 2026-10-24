@@ -19,6 +19,12 @@ export default function robots(): MetadataRoute.Robots {
           '/lp/',
         ],
       },
+      {
+        // The ABM source fetcher reads the fictional prospect sites (they carry noindex).
+        userAgent: 'PageForgeBot',
+        allow: '/fictional/',
+        disallow: ['/abm', '/demo', '/campaign', '/studio', '/api/'],
+      },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
     host: siteUrl,

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { postCallback } from '../src/callback'
-import { QaDispatchError, dispatchQaRun } from '../src/dispatch'
 import {
   computePassed,
   defaultThresholds,
@@ -100,63 +99,5 @@ describe('callback', () => {
     })
     expect(r).toEqual({ ok: false, status: undefined, attempts: 3 })
     expect(fetch).toHaveBeenCalledTimes(3)
-  })
-})
-
-describe('dispatchQaRun', () => {
-  const input = {
-    runId: 'r1',
-    url: 'https://app.test/preview/a',
-    attempt: 2,
-    callbackUrl: 'https://app.test/api/qa/callback',
-  }
-
-  it('posts a workflow_dispatch with string inputs', async () => {
-    const fetch = vi.fn(async (_u: string, _i?: RequestInit) =>
-      Response.json({
-        workflow_run_id: 42,
-        run_url: 'x',
-        html_url: 'https://github.com/o/r/actions/runs/42',
-      }),
-    )
-    const r = await dispatchQaRun(input, { token: 't', repository: 'huss2003/pageforge', fetch })
-    expect(r).toEqual({ workflowRunId: 42, htmlUrl: 'https://github.com/o/r/actions/runs/42' })
-    const [url, init] = fetch.mock.calls[0]!
-    expect(url).toBe(
-      'https://api.github.com/repos/huss2003/pageforge/actions/workflows/qa-run.yml/dispatches',
-    )
-    expect((init!.headers as Record<string, string>).authorization).toBe('Bearer t')
-    expect(JSON.parse(String(init!.body))).toEqual({
-      ref: 'main',
-      inputs: { run_id: 'r1', url: input.url, attempt: '2', callback_url: input.callbackUrl },
-    })
-  })
-
-  it('accepts 204 and surfaces GitHub errors', async () => {
-    const ok = await dispatchQaRun(input, {
-      token: 't',
-      repository: 'o/r',
-      fetch: async () => new Response(null, { status: 204 }),
-    })
-    expect(ok).toEqual({})
-    await expect(
-      dispatchQaRun(input, {
-        token: 't',
-        repository: 'o/r',
-        fetch: async () => Response.json({ message: 'Bad credentials' }, { status: 401 }),
-      }),
-    ).rejects.toThrow(/401\): Bad credentials/)
-  })
-
-  it('requires token, repository and http URLs', async () => {
-    await expect(dispatchQaRun(input, { repository: 'o/r', token: '' })).rejects.toBeInstanceOf(
-      QaDispatchError,
-    )
-    await expect(dispatchQaRun(input, { token: 't', repository: 'nope' })).rejects.toThrow(
-      /owner\/repo/,
-    )
-    await expect(
-      dispatchQaRun({ ...input, url: 'javascript:alert(1)' }, { token: 't', repository: 'o/r' }),
-    ).rejects.toThrow(/url/)
   })
 })

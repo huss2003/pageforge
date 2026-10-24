@@ -11,7 +11,7 @@ import {
   geminiSchema,
   type FetchLike,
 } from '../src'
-import { facts } from './helpers'
+import { facts } from '@pageforge/content'
 
 const schema = z.object({ answer: z.string().max(20) })
 const call = { system: 'sys', prompt: 'p', schema, task: 'test' }

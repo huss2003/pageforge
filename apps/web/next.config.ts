@@ -7,7 +7,6 @@ const nextConfig: NextConfig = {
     '@pageforge/blocks',
     '@pageforge/content',
     '@pageforge/agents',
-    '@pageforge/qa',
   ],
   poweredByHeader: false,
   images: {

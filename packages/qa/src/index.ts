@@ -5,7 +5,7 @@
  * serverless functions cannot host a full Chrome for Lighthouse.
  *
  * This entry is types + pure helpers only, safe for the web bundle.
- * The CLI lives in `src/run.ts`; the GitHub dispatcher in `@pageforge/qa/dispatch`.
+ * The CLI lives in `src/run.ts` (run by the qa-run workflow or locally).
  */
 export interface QaThresholds {
   performance: number
