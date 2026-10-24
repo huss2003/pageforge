@@ -23,7 +23,8 @@ import type { Lead } from '../types'
 import { clearEnv, req, testRuntime } from './helpers'
 
 /** A HubSpot-shaped fake token, built at runtime so secret scanners do not flag the test. */
-const fakeHubSpotToken = (c: string) => ['pat', 'na1', c.repeat(8), c.repeat(4), c.repeat(4), c.repeat(4), c.repeat(12)].join('-')
+const fakeHubSpotToken = (c: string) =>
+  ['pat', 'na1', c.repeat(8), c.repeat(4), c.repeat(4), c.repeat(4), c.repeat(12)].join('-')
 
 beforeEach(() => clearEnv())
 afterEach(() => setAbmRuntime(null))
