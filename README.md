@@ -1,60 +1,62 @@
 # PageForge
 
-**An AI system that turns a sales brief into a tested, SEO-ready landing page — live in minutes, with quality gates built in.**
+**Account-based marketing pages with evidence behind every claim.** A marketer turns an account brief into a branded landing page for one target account in minutes. AI drafts only from approved product facts and the account's own public pages, every factual statement carries its source, a reviewer signs off claim by claim, and engagement flows to analytics and the CRM.
 
-PageForge powers the marketing site of **Hoverline**, a fictional drone-inspection company for refineries, power grids and mines. Hoverline exists so the system has something real to market; it is not a real business.
+PageForge runs the marketing site of **Hoverline**, a fictional drone-inspection company for refineries, substations, mines, ports and solar farms. Hoverline and every target account are fictional; all metrics in the demo are labelled illustrative.
 
-> Status: **M0 — foundation.** Monorepo, design tokens and CI are in place. See the [roadmap](#roadmap).
+**Live demo:** <https://pageforge-hazel.vercel.app/abm> (sandbox workspace, pick a role)
+
+## The 2-minute demo
+
+1. Open `/abm`, choose **Marketer**, click **Use the Northstar example** and save the brief.
+2. PageForge reads the account's public site and keeps 12 sentences **word for word**, each with its link.
+3. **Generate draft.** The writer may use only Hoverline's approved facts and those sentences, and may only fill blocks from the design system. Every factual statement comes back as a claim with its source.
+4. The draft contains one unsupported claim ("cut security staffing costs by 40%"). The deterministic validator flags it: _Number 40 does not appear in the cited source._
+5. Switch to **Reviewer**, reject it with a note (the sentence leaves the page), approve the version.
+6. Switch back to **Marketer** and publish. The private page gets an unguessable link, noindex, an expiry date and UTM-tagged links per channel.
+7. Open the link as the prospect, scroll, click the CTA and book a slot.
+8. As **Sales rep**, the campaign shows the visit, scroll depth, CTA clicks and the meeting; the lead is in the CRM view (and HubSpot when connected).
 
 ## How it works
 
 ```
-Brief form
-  → Planner agent    picks sections from the design-system catalogue
-  → Writer agent     writes copy only from brand facts stored in Sanity (no invented claims)
-  → Zod validator    rejects malformed output and retries with the error (max 2)
-  → Sanity draft     saved, not public
-  → Preview URL      Next.js draft mode
-  → QA run           GitHub Actions: Lighthouse + axe accessibility + screenshot diff
-  → Fixer agent      patches failing content and re-runs QA (max 2 loops)
-  → Human approval   → publish → on-demand revalidation → live in seconds
-  → Metrics          timings, scores and token usage logged to Supabase
+Account brief
+  → Public context   SSRF-safe fetcher, robots.txt respected, verbatim sentences only
+  → AI draft         Gemini (Groq fallback) · registry blocks only · zod-validated · claims list
+  → Validator        numbers must appear in the cited fact; unsourced numbers become claims
+  → Review           supported / needs review / rejected · rejected text is removed
+  → Publish          only an approved version with nothing left to review
+  → Private page     /demo/[slug]-[token] · noindex · expiry · pause (410) · rollback
+  → Engagement       first-party beacons → Supabase · PostHog after consent · HubSpot sync
+  → Dashboards       per-account timeline, account vs generic page comparison, review metrics
 ```
 
-**Why QA runs in GitHub Actions:** Lighthouse needs a full Chrome, which Vercel's serverless functions cannot host. Actions is free for public repositories and gives every run a reproducible environment.
+**Why claims, not just copy:** in B2B marketing the risk is a confident sentence nobody can back up. Each claim stores the exact text, where it sits in the page, and the product fact or quoted source behind it. Publishing is blocked while any claim needs review, and the published version keeps its sources.
 
-**Why one block registry:** every marketing block is defined once — component, content schema, Sanity schema and an AI usage note. The website, the CMS and the agents all read the same registry, so the AI can only produce pages the design system can render.
+**Why one block registry:** every block is defined once (component, zod schema, Sanity schema, AI usage note). The site, the CMS and the drafting model read the same registry, so AI can only produce pages the design system can render.
 
 ## Repository
 
-| Path                | What it holds                                                                     |
-| ------------------- | --------------------------------------------------------------------------------- |
-| `apps/web`          | Next.js 16 site, Sanity Studio (`/studio`) and the Factory dashboard (`/factory`) |
-| `packages/ui`       | Hoverline design system: tokens, primitives, blocks                               |
-| `packages/blocks`   | Block registry shared by site, CMS and agents                                     |
-| `packages/agents`   | Planner, writer and fixer agents                                                  |
-| `packages/qa`       | Lighthouse, axe and screenshot checks                                             |
-| `.github/workflows` | CI and the per-draft QA workflow                                                  |
+| Path               | What it holds                                                                        |
+| ------------------ | ------------------------------------------------------------------------------------ |
+| `apps/web`         | Next.js 16 site, ABM desk (`/abm`), account pages, API, Sanity Studio (`/studio`)    |
+| `packages/ui`      | Hoverline design system: tokens, primitives, blocks, survey-chart illustrations      |
+| `packages/blocks`  | Block registry shared by site, CMS and the drafting model                            |
+| `packages/content` | Hoverline's approved facts (the only source of product claims) and seed pages        |
+| `packages/agents`  | LLM clients, account-page drafting, claim validation and removal, offline simulation |
+| `packages/qa`      | Lighthouse, axe and screenshot checks                                                |
+| `docs/abm-spec.md` | Product spec: roles, flow, claims model, security, analytics, demo script            |
+| `supabase`         | Migrations (`pf_` tables, RLS on, server-only access)                                |
 
 ## Stack (free tiers only)
 
-Next.js 16 · React 19 · Tailwind CSS v4 · Sanity · Supabase · Google Gemini (Groq fallback) · GitHub Actions · Vercel Hobby · Cloudflare Turnstile · Storybook
+Next.js 16 · React 19 · Tailwind CSS v4 · Sanity · Supabase · Google Gemini (Groq fallback) · PostHog · HubSpot free CRM · Cloudflare Turnstile · GitHub Actions · Vercel Hobby · Storybook
+
+Without API keys the app runs in **simulation mode**: an offline writer produces a realistic draft (including the unsupported claim) and data lives in memory, so the whole demo works locally.
 
 ## Design
 
-Hoverline's visual language is an **aeronautical survey chart**: chart paper and ink, a magenta flight route as the single accent, sage contour lines for quiet detail, and amber reserved for inspection findings. One typeface, Archivo, set expanded for headlines and normal for text. Details in [`docs/design.md`](docs/design.md).
-
-## Roadmap
-
-| Milestone | Scope                                           | Status  |
-| --------- | ----------------------------------------------- | ------- |
-| M0        | Monorepo, tokens, CI                            | ✅ Done |
-| M1        | Design system blocks, block registry, Storybook | Next    |
-| M2        | Marketing site, Sanity content, SEO             |         |
-| M3        | Planner → writer → validator → draft → preview  |         |
-| M4        | QA in GitHub Actions + fixer loop               |         |
-| M5        | Factory dashboard, metrics, public demo         |         |
-| M6        | Write-up, architecture diagram, demo video      |         |
+Hoverline's visual language is an **aeronautical survey chart**: chart paper and ink, a magenta flight route as the single accent, sage contour lines for quiet detail, and amber reserved for inspection findings. One typeface, Archivo, set expanded for headlines. Details in [`DESIGN.md`](DESIGN.md) and [`docs/design.md`](docs/design.md).
 
 ## Local development
 
@@ -62,11 +64,11 @@ Requires Node 22.12+ and pnpm 10.
 
 ```bash
 pnpm install
-cp .env.example apps/web/.env.local   # fill in what the current milestone needs
-pnpm dev                              # http://localhost:3000
+cp .env.example apps/web/.env.local   # optional: every key is optional
+pnpm dev                              # http://localhost:3000/abm
 ```
 
-Checks run in CI on every push: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`. Content model, editor workflow and seeding are documented in [`apps/web/README.md`](apps/web/README.md).
+Checks run in CI on every push: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`.
 
 ## Author
 

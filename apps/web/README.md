@@ -1,27 +1,33 @@
 # @pageforge/web
 
-The Hoverline marketing site, the embedded Sanity Studio and (from M5) the PageForge Factory dashboard. Next.js 16 App Router, React 19, Tailwind CSS v4.
+The Hoverline marketing site, the PageForge ABM desk and account pages, and the embedded Sanity Studio. Next.js 16 App Router, React 19, Tailwind CSS v4.
 
 > Hoverline is a fictional company. Every operator, person and number on the site is invented for this portfolio project, and every page says so.
 
 ## Routes
 
-| Route                  | Source                                         | Rendering                                   |
-| ---------------------- | ---------------------------------------------- | ------------------------------------------- |
-| `/`                    | page `home` (kind `home`)                      | Static                                      |
-| `/[slug]`              | kinds `platform` and `page`                    | Static (`/platform`, `/book-a-demo`)        |
-| `/industries`          | index built from every `industry` page         | Static                                      |
-| `/industries/[slug]`   | kind `industry`                                | Static                                      |
-| `/case-studies`        | index built from every `caseStudy` page        | Static                                      |
-| `/case-studies/[slug]` | kind `caseStudy`                               | Static                                      |
-| `/lp/[slug]`           | kind `landing` (Factory output)                | Static at build, new slugs render on demand |
-| `/og/[...path]`        | Open Graph image for any page path             | Static PNG, 1200 × 630                      |
-| `/sitemap.xml`         | every page without `seo.noindex`               | Static                                      |
-| `/robots.txt`          | disallows `/factory /studio /api /preview /lp` | Static                                      |
-| `/llms.txt`            | plain-text site summary for AI crawlers        | Static                                      |
-| `/studio`              | Sanity Studio (setup notice without env)       | Static shell                                |
-| `/api/revalidate`      | Sanity webhook → `revalidateTag`               | Dynamic                                     |
-| `/api/draft-mode/*`    | enable and disable draft previews              | Dynamic                                     |
+| Route                   | Source                                        | Rendering                                   |
+| ----------------------- | --------------------------------------------- | ------------------------------------------- |
+| `/`                     | page `home` (kind `home`)                     | Static                                      |
+| `/[slug]`               | kinds `platform` and `page`                   | Static (`/platform`, `/book-a-demo`)        |
+| `/industries`           | index built from every `industry` page        | Static                                      |
+| `/industries/[slug]`    | kind `industry`                               | Static                                      |
+| `/case-studies`         | index built from every `caseStudy` page       | Static                                      |
+| `/case-studies/[slug]`  | kind `caseStudy`                              | Static                                      |
+| `/lp/[slug]`            | kind `landing` (campaign landing pages)       | Static at build, new slugs render on demand |
+| `/og/[...path]`         | Open Graph image for any page path            | Static PNG, 1200 × 630                      |
+| `/sitemap.xml`          | every page without `seo.noindex`              | Static                                      |
+| `/robots.txt`           | disallows `/abm /demo /campaign /studio /api` | Static                                      |
+| `/llms.txt`             | plain-text site summary for AI crawlers       | Static                                      |
+| `/studio`               | Sanity Studio (setup notice without env)      | Static shell                                |
+| `/api/revalidate`       | Sanity webhook → `revalidateTag`              | Dynamic                                     |
+| `/api/draft-mode/*`     | enable and disable draft previews             | Dynamic                                     |
+| `/abm/*`                | ABM desk: briefs, sources, review, publish    | Client, noindex                             |
+| `/demo/[slug]-[token]`  | published private account page                | Dynamic, noindex, 404 on a wrong token      |
+| `/campaign/[slug]`      | published campaign page                       | Dynamic, 410 when paused or expired         |
+| `/solutions/[industry]` | generic baseline page per industry            | Dynamic                                     |
+| `/fictional/*`          | fictional prospect websites used as sources   | Static, noindex                             |
+| `/api/abm/*`            | ABM API (see `lib/abm/types.ts`)              | Dynamic                                     |
 
 Each route accepts only its own page kinds, so `/industries/<case-study-slug>` is a 404 rather than a duplicate URL. `lib/paths.ts` is the single map from page kind to URL; the sitemap, breadcrumbs, OG images and the Studio's Presentation tool all use it.
 
@@ -32,7 +38,7 @@ One document type, `page`, mirrors `pageSchema` in `packages/blocks`:
 - `title`, `slug`, `kind` (`home`, `platform`, `industry`, `caseStudy`, `landing`, `page`)
 - `seo` — title (≤ 60), description (≤ 160), `noindex` (campaign pages for one prospect)
 - `blocks` — ordered array of the 14 block types (hero, operator strip, stats band, capabilities, use-case tabs, how it works, case study, testimonial, comparison, integrations, compliance, FAQ, call to action, demo form)
-- `generatedBy` — read-only; set when the Factory's writer agent produced the page
+- `generatedBy` — read-only; set when a page was produced by an AI draft
 
 Each block is its own Sanity object type in `sanity/schemaTypes/blocks.ts`, with the same field names, maximum lengths and array sizes as the zod schema. Block descriptions in the Studio come from the registry's `aiUsage` notes, so editors see the same "when to use this" guidance the planner agent reads. The page-level validator enforces the registry's placement rules (hero first, CTA or form last, per-page limits). `test/sanity-schema.test.ts` fails if the Studio schema drifts from zod.
 
@@ -51,7 +57,7 @@ All claims (numbers, operators, quotes, certifications) live in `packages/conten
 ## Editor workflow
 
 1. Open `/studio` and sign in with your Sanity account.
-2. Pick a page from **Home page**, **Industries**, **Case studies** or **Campaign landing pages** (Factory output is also listed under **Written by the Factory**).
+2. Pick a page from **Home page**, **Industries**, **Case studies** or **Campaign landing pages**.
 3. Edit blocks. Character limits and block rules show inline before you can publish.
 4. Use **Presentation** to see the draft on the real site with click-to-edit overlays (needs the read token).
 5. **Publish.** Sanity calls `/api/revalidate`, which expires `page:<slug>` and `pages`. The page, its section index, the sitemap and `llms.txt` update within seconds, without a redeploy.
@@ -79,7 +85,7 @@ All optional. With none set, `pnpm build` produces the full site from seed conte
 | `NEXT_PUBLIC_SITE_URL`                                   | Canonical URLs, sitemap, OG and JSON-LD                                 |
 | `NEXT_PUBLIC_SANITY_PROJECT_ID`                          | Turns on Sanity as the content source and loads the Studio              |
 | `NEXT_PUBLIC_SANITY_DATASET`                             | Dataset the site reads (default `production`)                           |
-| `SANITY_DEMO_DATASET`                                    | Dataset for the public Factory demo (default `demo`)                    |
+| `SANITY_DEMO_DATASET`                                    | Dataset for the public demo (default `demo`)                            |
 | `SANITY_API_READ_TOKEN`                                  | Draft mode and Presentation previews (Viewer)                           |
 | `SANITY_API_WRITE_TOKEN`                                 | Seed script (Editor)                                                    |
 | `SANITY_REVALIDATE_SECRET`                               | Verifies the publish webhook                                            |
@@ -95,7 +101,7 @@ All optional. With none set, `pnpm build` produces the full site from seed conte
 ```bash
 # apps/web/.env.local needs NEXT_PUBLIC_SANITY_PROJECT_ID and SANITY_API_WRITE_TOKEN
 pnpm seed:sanity                    # dataset from NEXT_PUBLIC_SANITY_DATASET
-pnpm seed:sanity --dataset demo     # the Factory's demo dataset
+pnpm seed:sanity --dataset demo     # the public demo dataset
 pnpm seed:sanity --dry-run          # validate and list, write nothing
 ```
 
