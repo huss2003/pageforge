@@ -79,6 +79,8 @@ export const defaultFindings: Record<SiteType, PlannerFinding[]> = {
   ],
 }
 
+const CORE_SITES: SiteType[] = ['refinery', 'substation', 'open-pit']
+
 export interface RoutePlannerProps {
   /** Site shown first, and the only one rendered by crawlers that ignore CSS. */
   defaultSite?: SiteType
@@ -86,7 +88,10 @@ export interface RoutePlannerProps {
   routeFacts?: Partial<Record<SiteType, RouteFact[]>>
   /** Findings per site, max 3: the plan has three finding positions. */
   findings?: Partial<Record<SiteType, PlannerFinding[]>>
-  /** Which sites to offer, in order. */
+  /**
+   * Which sites to offer, in order. Defaults to the three core sites, or to
+   * `defaultSite` alone when it is not one of them (a port or solar page).
+   */
   sites?: SiteType[]
   /** Draw the route when the plan appears. Off in static contexts. */
   animate?: boolean
@@ -105,12 +110,13 @@ export function RoutePlanner({
   defaultSite = 'refinery',
   routeFacts,
   findings,
-  sites = ['refinery', 'substation', 'open-pit'],
+  sites: sitesProp,
   animate = true,
   id = 'planner',
   className,
 }: RoutePlannerProps) {
   const name = `${id}-site`
+  const sites = sitesProp ?? (CORE_SITES.includes(defaultSite) ? CORE_SITES : [defaultSite])
   const initial = sites.includes(defaultSite) ? defaultSite : sites[0]
   return (
     <fieldset

@@ -97,7 +97,10 @@ export function requireRole(
   return { ok: true, session }
 }
 
-export async function verifyTurnstile(token: string | undefined, ip: string): Promise<boolean> {
+export async function verifyTurnstile(
+  token: string | null | undefined,
+  ip: string,
+): Promise<boolean> {
   const secret = getAbmConfig().turnstile.secretKey
   if (!secret) return true
   if (!token) return false

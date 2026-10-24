@@ -20,7 +20,7 @@ export function FeatureGrid(props: BlockProps<'featureGrid'> & BlockExtras) {
         <InspectionReport
           site={siteType ?? 'substation'}
           compact
-          className="lg:max-w-[36rem] lg:justify-self-end"
+          className="w-full lg:max-w-[36rem] lg:justify-self-end"
         />
       </div>
 

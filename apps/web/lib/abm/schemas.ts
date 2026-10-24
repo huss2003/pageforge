@@ -198,7 +198,7 @@ export const leadBodySchema = z.object({
   }),
   utm: utmSchema.optional(),
   pageUrl: z.string().max(500).optional(),
-  turnstileToken: z.string().max(4096).optional(),
+  turnstileToken: z.string().max(4096).nullish(),
 })
 
 export const meetingBodySchema = z.object({
@@ -212,5 +212,5 @@ export const meetingBodySchema = z.object({
   company: text(120, 'the company name').min(1, 'Enter your company.'),
   utm: utmSchema.optional(),
   pageUrl: z.string().max(500).optional(),
-  turnstileToken: z.string().max(4096).optional(),
+  turnstileToken: z.string().max(4096).nullish(),
 })
