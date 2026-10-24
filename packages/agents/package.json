@@ -13,5 +13,11 @@
   },
   "devDependencies": {
     "typescript": "~5.9.3"
+  },
+  "dependencies": {
+    "@pageforge/blocks": "workspace:*",
+    "@pageforge/content": "workspace:*",
+    "@pageforge/qa": "workspace:*",
+    "zod": "^4.1.12"
   }
 }

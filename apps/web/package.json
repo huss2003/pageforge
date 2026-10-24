@@ -18,7 +18,8 @@
     "@pageforge/ui": "workspace:*",
     "next": "16.4.3",
     "react": "^19.2.3",
-    "react-dom": "^19.2.3"
+    "react-dom": "^19.2.3",
+    "@pageforge/content": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",

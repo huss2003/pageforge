@@ -1,0 +1,20 @@
+{
+  "name": "@pageforge/content",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Hoverline brand facts (the only source the writer agent may use) and seed pages.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@pageforge/blocks": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3"
+  }
+}

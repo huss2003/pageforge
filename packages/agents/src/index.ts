@@ -1,40 +1,11 @@
 /**
- * Agent pipeline contract (implemented in milestone M3).
+ * Agent pipeline contract.
  *
  *   brief → planner → writer → validator → Sanity draft → QA → fixer → publish
  *
- * Each step is a pure-ish function with typed input/output so runs can be
- * logged step by step to Supabase and replayed when debugging.
+ * Each step is a typed function so runs can be logged step by step to
+ * Supabase and replayed when debugging. The pipeline never imports a
+ * database or CMS client directly: the caller injects them via
+ * `PipelineDeps`, which keeps this package testable with fakes.
  */
-export interface Brief {
-  /** Who the page is for, e.g. "Tier-1 refinery operator". */
-  prospect: string
-  industry: 'oil-and-gas' | 'utilities' | 'mining' | 'other'
-  /** Job titles reading the page. */
-  audience: string[]
-  /** The single outcome the page should drive. */
-  goal: 'book-demo' | 'download-report' | 'contact-sales'
-  /** Optional extra context from the sales team. */
-  notes?: string
-}
-
-export type RunStatus =
-  | 'planning'
-  | 'writing'
-  | 'validating'
-  | 'drafted'
-  | 'qa-running'
-  | 'fixing'
-  | 'ready'
-  | 'published'
-  | 'failed'
-
-export interface StepLog {
-  step: 'plan' | 'write' | 'validate' | 'draft' | 'qa' | 'fix' | 'publish'
-  model?: string
-  startedAt: string
-  durationMs: number
-  tokens?: { input: number; output: number }
-  ok: boolean
-  error?: string
-}
+export * from './types'
