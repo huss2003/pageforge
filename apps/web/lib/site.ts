@@ -30,7 +30,7 @@ export const navCta: NavItem = { label: 'Book a demo', href: '/book-a-demo' }
 export const footerNav: NavItem[] = [
   ...mainNav,
   navCta,
-  { label: 'Factory', href: '/factory' },
+  { label: 'ABM desk', href: '/abm' },
   { label: 'GitHub', href: repoUrl },
 ]
 

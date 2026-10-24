@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next'
+import { listPublicSolutionsPaths } from '@/lib/abm/public'
 import { getAllPublicPages } from '@/lib/content'
 import { pathForPage, sectionIndexes } from '@/lib/paths'
 import { absoluteUrl } from '@/lib/site'
@@ -12,9 +13,12 @@ const priority: Record<string, number> = {
   landing: 0.4,
 }
 
-/** Every public page (noindex pages excluded) plus the section indexes. */
+/** Every public page (noindex pages excluded), the section indexes and published /solutions pages. */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const pages = await getAllPublicPages()
+  const [pages, solutions] = await Promise.all([
+    getAllPublicPages(),
+    listPublicSolutionsPaths().catch(() => [] as string[]),
+  ])
   return [
     ...pages.map((page) => ({
       url: absoluteUrl(pathForPage(page)),
@@ -23,6 +27,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
     ...Object.values(sectionIndexes).map((index) => ({
       url: absoluteUrl(index.path),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
+    ...solutions.map((path) => ({
+      url: absoluteUrl(path),
       changeFrequency: 'monthly' as const,
       priority: 0.7,
     })),

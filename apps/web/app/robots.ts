@@ -7,8 +7,17 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: '*',
         allow: '/',
-        // Tools, drafts and one-prospect campaign pages stay out of search.
-        disallow: ['/factory', '/studio', '/api/', '/preview', '/lp/'],
+        // Tools, drafts, one-account pages and the fictional prospect sites stay out of search.
+        disallow: [
+          '/abm',
+          '/demo',
+          '/campaign',
+          '/fictional',
+          '/studio',
+          '/api/',
+          '/preview',
+          '/lp/',
+        ],
       },
     ],
     sitemap: `${siteUrl}/sitemap.xml`,
