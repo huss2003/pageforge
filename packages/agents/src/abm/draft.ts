@@ -41,6 +41,38 @@ const claimOutput = z.object({
   accountFactIds: z.array(z.string().max(16)).max(6).default([]),
 })
 
+const BLOCK_KINDS = new Set<string>(blockSchema.options.map((o) => o.shape._type.value))
+
+/**
+ * Smaller models sometimes write a block as {"hero": {...}} or with "type"
+ * instead of "_type", or leave out "_key". These are envelope mistakes, not
+ * content: put the envelope right and let zod judge the content.
+ */
+export function normalizeBlock(b: unknown, i: number): unknown {
+  if (!b || typeof b !== 'object' || Array.isArray(b)) return b
+  let o = b as Record<string, unknown>
+  const keys = Object.keys(o)
+  if (
+    keys.length === 1 &&
+    BLOCK_KINDS.has(keys[0]!) &&
+    o[keys[0]!] &&
+    typeof o[keys[0]!] === 'object'
+  )
+    o = { _type: keys[0], ...(o[keys[0]!] as Record<string, unknown>) }
+  if (typeof o._type !== 'string') {
+    const t = typeof o.type === 'string' ? o.type : typeof o.kind === 'string' ? o.kind : undefined
+    if (t && BLOCK_KINDS.has(t)) {
+      const { type: _t, kind: _k, ...rest } = o
+      void _t
+      void _k
+      o = { ...rest, _type: t }
+    }
+  }
+  if (typeof o._key !== 'string')
+    o = { ...o, _key: typeof o.key === 'string' ? o.key : `b${i + 1}` }
+  return o
+}
+
 export const draftOutputSchema = z.object({
   title: z.string().trim().min(1).max(200),
   seoTitle: z.string().trim().min(1).max(200),
@@ -48,14 +80,7 @@ export const draftOutputSchema = z.object({
   // Keys are bookkeeping, not content: fill any the model left out with the
   // "b1", "b2" … convention the prompt asks for, so claims still line up.
   blocks: z.preprocess(
-    (v) =>
-      Array.isArray(v)
-        ? v.map((b, i) =>
-            b && typeof b === 'object' && typeof (b as { _key?: unknown })._key !== 'string'
-              ? { ...b, _key: `b${i + 1}` }
-              : b,
-          )
-        : v,
+    (v) => (Array.isArray(v) ? v.map((b, i) => normalizeBlock(b, i)) : v),
     z.array(blockSchema).min(3).max(10),
   ),
   claims: z.array(claimOutput).max(48),

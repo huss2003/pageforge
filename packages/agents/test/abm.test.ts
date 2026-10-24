@@ -87,6 +87,19 @@ describe('draftAccountPage (simulated)', () => {
     }
   })
 
+  it('repairs block envelopes: {"hero": {...}}, "type" for "_type"', () => {
+    const good = simulateDraft(northstarBrief, [], facts)
+    const [first, second, ...rest] = good.blocks
+    const { _type: t1, _key: _k1, ...body1 } = first!
+    const { _type: t2, ...body2 } = second!
+    const messy = { ...good, blocks: [{ [t1]: body1 }, { ...body2, type: t2 }, ...rest] }
+    const parsed = draftOutputSchema.parse(messy)
+    expect(parsed.blocks.slice(0, 2).map((b) => [b._type, b._key])).toEqual([
+      [t1, 'b1'],
+      [t2, second!._key],
+    ])
+  })
+
   it('fills block keys the model left out, in the b1, b2 … order', () => {
     const good = simulateDraft(northstarBrief, [], facts)
     const keyless = { ...good, blocks: good.blocks.map(({ _key, ...rest }) => rest) }

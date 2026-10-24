@@ -4,7 +4,7 @@ import { blockSchema, type BlockKind } from '@pageforge/blocks'
 /**
  * Compact, TypeScript-like shape of each block, generated from the zod
  * schemas so prompts never drift from the contract. Example:
- *   hero {variant:"route"|"statement"|"split", heading:str≤90, ...}
+ *   {_type:"hero", _key:str, variant:"route"|"statement"|"split", heading:str≤90, ...}
  */
 const cache = new Map<BlockKind, string>()
 
@@ -17,7 +17,9 @@ export function blockShape(kind: BlockKind): string {
   const props = { ...(json.properties ?? {}) }
   delete props._key
   delete props._type
-  const shape = `${kind} ${describe({ ...json, properties: props })}`
+  // Spell out _type and _key so the model writes the discriminator in place.
+  const body = describe({ ...json, properties: props })
+  const shape = `{_type:"${kind}", _key:str, ${body.slice(1)}`
   cache.set(kind, shape)
   return shape
 }
