@@ -17,7 +17,7 @@ import { z } from 'zod'
 
 const shortText = (max: number) => z.string().trim().min(1).max(max)
 
-export const siteTypeSchema = z.enum(['refinery', 'substation', 'open-pit'])
+export const siteTypeSchema = z.enum(['refinery', 'substation', 'open-pit', 'port', 'solar-farm'])
 export type SiteType = z.infer<typeof siteTypeSchema>
 
 export const linkSchema = z.object({

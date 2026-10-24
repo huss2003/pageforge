@@ -3,7 +3,7 @@ import type { SiteType } from '@pageforge/blocks'
 import { cn } from '../cn'
 
 /**
- * Survey-chart site plans for the three kinds of site Hoverline flies.
+ * Survey-chart site plans for each kind of site Hoverline flies.
  *
  * Every plan shares one drawing language: a 640×420 sheet with edge ticks
  * and corner coordinates, sage terrain contours, structures in ink on the
@@ -514,6 +514,238 @@ function OpenPitDrawing() {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Port terminal: fence line, container yards, quay cranes, berths            */
+/* -------------------------------------------------------------------------- */
+
+const QUAY_Y = 312
+const stackRows = [84, 120, 156, 192, 228]
+const yards = [
+  { x: 64, label: 'Terminal 1' },
+  { x: 306, label: 'Terminal 2' },
+]
+const quayCranes = [
+  { x: 118, id: 'QC-1' },
+  { x: 206, id: 'QC-2' },
+  { x: 358, id: 'QC-3' },
+  { x: 446, id: 'QC-4' },
+]
+
+function PortDrawing() {
+  return (
+    <>
+      {/* Water, with sage swell lines */}
+      <rect
+        x="0"
+        y={QUAY_Y}
+        width={PLAN_WIDTH}
+        height={PLAN_HEIGHT - QUAY_Y}
+        className="fill-surface-shade"
+      />
+      <g className="fill-none stroke-contour" strokeWidth="1" opacity="0.7">
+        <path d="M0 366 C 60 360, 120 372, 180 366 S 300 360, 360 366 S 460 372, 510 366" />
+        <path d="M0 398 C 70 392, 140 404, 210 398 S 340 392, 410 398 S 480 404, 510 398" />
+      </g>
+
+      {/* Cruise pier */}
+      <rect x="520" y="230" width="72" height="168" className={structure} strokeWidth="1.25" />
+      <Label x={512} y={410} anchor="end">
+        Cruise berth C1
+      </Label>
+
+      {/* Quay edge with fender ticks */}
+      <path d={`M0 ${QUAY_Y} H520`} className="stroke-fg" strokeWidth="1.75" />
+      <g className="stroke-fg-muted" strokeWidth="1">
+        {Array.from({ length: 16 }, (_, i) => 20 + i * 31).map((x) => (
+          <path key={x} d={`M${x} ${QUAY_Y} V${QUAY_Y + 5}`} />
+        ))}
+      </g>
+      <Label x={24} y={QUAY_Y + 24}>
+        Berth 1
+      </Label>
+      <Label x={270} y={QUAY_Y + 24}>
+        Berth 3
+      </Label>
+
+      {/* Perimeter fence, open to the water */}
+      <path
+        d={`M30 ${QUAY_Y - 12} V140 M30 108 V40 H610 V${QUAY_Y - 12}`}
+        className="fill-none stroke-fg-muted"
+        strokeWidth="1"
+        strokeDasharray="6 4"
+      />
+      <Label x={36} y={117}>
+        Gate 1
+      </Label>
+      <Label x={610} y={30} anchor="end">
+        Fence line
+      </Label>
+
+      {/* Container yards: stack rows with bay divisions */}
+      {yards.map((yard) => (
+        <g key={yard.label}>
+          <g className={structure} strokeWidth="1.25">
+            {stackRows.map((y) => (
+              <rect key={y} x={yard.x} y={y} width="186" height="22" rx="1" />
+            ))}
+          </g>
+          <g className="stroke-fg-muted" strokeWidth="0.75">
+            {stackRows.map((y) =>
+              Array.from({ length: 14 }, (_, i) => yard.x + 12.4 * (i + 1)).map((x) => (
+                <path key={`${y}-${x}`} d={`M${r1(x)} ${y + 3} V${y + 19}`} />
+              )),
+            )}
+          </g>
+          <Label x={yard.x} y={270}>
+            {yard.label}
+          </Label>
+        </g>
+      ))}
+
+      {/* Admin building and lighting masts */}
+      <rect x="520" y="78" width="64" height="56" rx="2" className={structure} strokeWidth="1.25" />
+      <Label x={520} y={152}>
+        Admin
+      </Label>
+      <g className="fill-surface stroke-fg" strokeWidth="1.25">
+        {[
+          [276, 92],
+          [276, 236],
+          [508, 196],
+          [56, 286],
+        ].map(([x, y]) => (
+          <circle key={`${x}-${y}`} cx={x} cy={y} r="4" />
+        ))}
+      </g>
+
+      {/* Ship-to-shore cranes straddling the quay, booms out over the water */}
+      {quayCranes.map((c) => (
+        <g key={c.id}>
+          <path
+            d={`M${c.x + 11} ${QUAY_Y + 14} V${QUAY_Y + 50}`}
+            className="stroke-fg"
+            strokeWidth="2"
+          />
+          <rect
+            x={c.x}
+            y={QUAY_Y - 22}
+            width="22"
+            height="36"
+            rx="1"
+            className={structure}
+            strokeWidth="1.25"
+          />
+          <text
+            x={c.x + 11}
+            y={QUAY_Y - 30}
+            textAnchor="middle"
+            className="fill-fg text-[11px] font-semibold max-md:hidden"
+          >
+            {c.id}
+          </text>
+        </g>
+      ))}
+    </>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
+/* Solar farm: tracker blocks, inverter stations, substation                  */
+/* -------------------------------------------------------------------------- */
+
+const solarBlocks = [
+  { id: 'A', x: 64, y: 56 },
+  { id: 'B', x: 334, y: 56 },
+  { id: 'C', x: 64, y: 232 },
+  { id: 'D', x: 334, y: 232 },
+]
+const BLOCK_W = 222
+const BLOCK_H = 132
+
+function SolarDrawing() {
+  return (
+    <>
+      <g className="fill-none stroke-contour" strokeWidth="1" opacity="0.7">
+        <path d="M0 24 C 120 14, 260 30, 380 20 S 560 10, 640 22" />
+        <path d="M600 260 C 612 300, 606 350, 622 410" />
+      </g>
+
+      {/* Access roads */}
+      <path
+        d="M30 210 H600 M310 34 V392"
+        className="fill-none stroke-surface-shade"
+        strokeWidth="14"
+      />
+      <path
+        d="M30 203 H303 V34 M317 34 V203 H600 M30 217 H303 V392 M317 392 V217 H600"
+        className="fill-none stroke-line"
+        strokeWidth="1"
+      />
+
+      {/* Fence */}
+      <rect
+        x="40"
+        y="34"
+        width="544"
+        height="358"
+        className="fill-none stroke-fg-muted"
+        strokeWidth="1"
+        strokeDasharray="6 4"
+      />
+
+      {/* Tracker rows: single-axis trackers run north to south */}
+      {solarBlocks.map((b) => (
+        <g key={b.id}>
+          <g className={structure} strokeWidth="1">
+            {Array.from({ length: 13 }, (_, i) => b.x + i * 17).map((x) => (
+              <rect key={x} x={x} y={b.y} width="9" height={BLOCK_H} rx="1" />
+            ))}
+          </g>
+          <g className="stroke-fg-muted" strokeWidth="0.75">
+            {Array.from({ length: 13 }, (_, i) => b.x + i * 17).map((x) => (
+              <path key={x} d={`M${x + 4.5} ${b.y + 2} V${b.y + BLOCK_H - 2}`} />
+            ))}
+          </g>
+          <text
+            x={b.x + BLOCK_W - 4}
+            y={b.y < 200 ? b.y - 6 : b.y + BLOCK_H + 18}
+            textAnchor="end"
+            className="fill-fg-muted text-[13px] max-sm:hidden"
+          >
+            Block {b.id}
+          </text>
+        </g>
+      ))}
+
+      {/* Inverter stations on the east-west road */}
+      <g className={structure} strokeWidth="1.25">
+        <rect x="166" y="200" width="20" height="20" rx="1" />
+        <rect x="436" y="200" width="20" height="20" rx="1" />
+      </g>
+      <Label x={190} y={214}>
+        INV-1
+      </Label>
+      <Label x={460} y={214}>
+        INV-2
+      </Label>
+
+      {/* Substation outside the fence */}
+      <rect
+        x="596"
+        y="184"
+        width="36"
+        height="52"
+        rx="2"
+        className={structure}
+        strokeWidth="1.25"
+      />
+      <Label x={634} y={176} anchor="end">
+        Substation
+      </Label>
+    </>
+  )
+}
+
+/* -------------------------------------------------------------------------- */
 /* Specs                                                                      */
 /* -------------------------------------------------------------------------- */
 
@@ -567,6 +799,32 @@ const openPitRoute: Point[] = [
   [292, 130],
   [170, 214],
   [36, 396],
+]
+
+const portRoute: Point[] = [
+  [56, 66],
+  [44, 48],
+  [598, 48],
+  [598, 214],
+  [556, 392],
+  [500, 346],
+  [100, 346],
+  [290, 290],
+  [290, 70],
+  [56, 66],
+]
+
+const solarRoute: Point[] = [
+  [52, 210],
+  [52, 88],
+  [574, 88],
+  [574, 160],
+  [52, 160],
+  [52, 264],
+  [574, 264],
+  [574, 336],
+  [52, 336],
+  [52, 210],
 ]
 
 export const sitePlans: Record<SiteType, SitePlanSpec> = {
@@ -623,6 +881,42 @@ export const sitePlans: Record<SiteType, SitePlanSpec> = {
     scale: [84, 400],
     detail: [80, 30, 500, 328],
     drawing: OpenPitDrawing,
+  },
+  port: {
+    site: 'port',
+    title: 'Night patrol route over a port terminal',
+    description:
+      'The drone leaves its dock inside Gate 1, flies the whole fence line, rounds the cruise pier, runs back along the berths under the quay-crane booms and returns up the road between the container yards.',
+    coordinates: { nw: '57°42′06″N 11°48′32″E', se: '57°41′44″N 11°49′18″E' },
+    dock: [56, 66],
+    route: portRoute,
+    waypoints: [1, 2, 3, 4, 5, 6, 7, 8],
+    anchors: [
+      { at: [420, 40], label: [392, 54], asset: 'North fence, panel 41' },
+      { at: [369, 300], label: [370, 362], asset: 'QC-3 hoist brake' },
+      { at: [160, 156], label: [96, 190], asset: 'Row C, bay 18' },
+    ],
+    scale: [40, 412],
+    detail: [20, 20, 600, 392],
+    drawing: PortDrawing,
+  },
+  'solar-farm': {
+    site: 'solar-farm',
+    title: 'Thermal survey route over a solar farm',
+    description:
+      'The drone leaves its dock at the west gate and flies a lawnmower pattern over the four tracker blocks at 60 m, reading every string, then checks both inverter stations before landing.',
+    coordinates: { nw: '37°24′31″N 5°56′44″W', se: '37°24′02″N 5°55′51″W' },
+    dock: [52, 210],
+    route: solarRoute,
+    waypoints: [1, 2, 3, 4, 5, 6, 7, 8],
+    anchors: [
+      { at: [453, 120], label: [462, 100], asset: 'B-14, string 6' },
+      { at: [183, 300], label: [196, 296], asset: 'C-07 module' },
+      { at: [446, 210], label: [470, 238], asset: 'INV-2 terminal' },
+    ],
+    scale: [330, 414],
+    detail: [30, 24, 570, 380],
+    drawing: SolarDrawing,
   },
 }
 

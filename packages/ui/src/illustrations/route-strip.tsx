@@ -12,9 +12,17 @@ const stops: Record<SiteType, string[]> = {
   refinery: ['Dock', 'TK-101', 'TK-104', 'PR-3', 'Crude unit', 'Cracker', 'Flare F-1', 'Dock'],
   substation: ['Dock', 'Bay 1', 'Bay 2', 'Bay 3', 'Bay 4', 'Bay 5', 'T2', 'Dock'],
   'open-pit': ['Dock', 'West rim', 'Bench 7', 'Bench 5', 'Ramp R2', 'Bench 3', 'Crusher', 'Dock'],
+  port: ['Dock', 'Gate 1', 'North fence', 'Cruise C1', 'Berth 3', 'QC-3', 'Terminal 2', 'Dock'],
+  'solar-farm': ['Dock', 'Block A', 'Block B', 'INV-2', 'Block D', 'Block C', 'INV-1', 'Dock'],
 }
 
-const findingStop: Record<SiteType, number> = { refinery: 2, substation: 6, 'open-pit': 3 }
+const findingStop: Record<SiteType, number> = {
+  refinery: 2,
+  substation: 6,
+  'open-pit': 3,
+  port: 2,
+  'solar-farm': 3,
+}
 
 const W = 1200
 const H = 132

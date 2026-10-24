@@ -37,6 +37,18 @@ export const defaultRouteFacts: Record<SiteType, RouteFact[]> = {
     { label: 'Benches surveyed', value: '7' },
     { label: 'Flights per day', value: '1' },
   ],
+  port: [
+    { label: 'Perimeter patrol', value: '7.5 km' },
+    { label: 'Flight time', value: '34 min' },
+    { label: 'Berths checked', value: 'Every 2 h after dark' },
+    { label: 'Patrols per night', value: '6' },
+  ],
+  'solar-farm': [
+    { label: 'Area per flight', value: 'Up to 60 MW' },
+    { label: 'Flight time', value: '38 min' },
+    { label: 'Thermal resolution', value: 'String and cell' },
+    { label: 'Cadence', value: 'Weekly thermal' },
+  ],
 }
 
 export const defaultFindings: Record<SiteType, PlannerFinding[]> = {
@@ -54,6 +66,16 @@ export const defaultFindings: Record<SiteType, PlannerFinding[]> = {
     { asset: 'Bench 5 crest', detail: '14 mm movement in 7 days on the north wall' },
     { asset: 'Ramp R2', detail: 'Grade 9.4 %, two potholes at the switchback' },
     { asset: 'Bench 3 toe', detail: 'New water seep, 6 m wide' },
+  ],
+  port: [
+    { asset: 'North fence, panel 41', detail: 'Panel lifted at the base, gap about 40 cm' },
+    { asset: 'QC-3 hoist brake', detail: '96 °C after the night shift, 38 °C over QC-2' },
+    { asset: 'Row C, bay 18', detail: 'Container door open on the second tier' },
+  ],
+  'solar-farm': [
+    { asset: 'B-14, string 6', detail: 'String running cold: open circuit or blown fuse' },
+    { asset: 'C-07 module', detail: 'Hot cell at 88 °C, bypass diode suspected' },
+    { asset: 'INV-2 terminal', detail: 'DC input terminal 24 °C above its neighbours' },
   ],
 }
 

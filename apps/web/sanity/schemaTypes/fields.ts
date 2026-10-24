@@ -39,6 +39,8 @@ export const siteTypeOptions = [
   { title: 'Refinery', value: 'refinery' },
   { title: 'Substation', value: 'substation' },
   { title: 'Open-pit mine', value: 'open-pit' },
+  { title: 'Port terminal', value: 'port' },
+  { title: 'Solar farm', value: 'solar-farm' },
 ]
 
 export function siteTypeField(
