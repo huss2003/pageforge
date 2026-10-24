@@ -1,0 +1,10 @@
+@import 'tailwindcss';
+@import '../src/theme.css';
+
+@source '../src';
+
+/* Storybook canvas follows the theme toolbar. */
+body {
+  background: var(--surface);
+  color: var(--fg);
+}
