@@ -21,7 +21,7 @@ import {
  * If the API rejects the schema (HTTP 400, e.g. too complex), the call is
  * repeated once in plain JSON mode with the shape described in the prompt.
  */
-export const DEFAULT_GEMINI_MODEL = 'gemini-3.8-flash'
+export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite'
 export const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 export interface GeminiOptions extends HttpClientOptions {
@@ -132,7 +132,8 @@ export class GeminiClient implements LlmClient {
     if (isGemini2) {
       // Gemini 3 recommends the default temperature (1.0); older models get the caller's.
       if (opts.temperature !== undefined) generationConfig.temperature = opts.temperature
-    } else if (this.thinkingLevel) {
+    } else if (this.thinkingLevel && !/flash-lite/.test(this.model)) {
+      // Flash-Lite defaults to minimal thinking, the fastest setting; leave it.
       generationConfig.thinkingConfig = { thinkingLevel: this.thinkingLevel.toUpperCase() }
     }
 

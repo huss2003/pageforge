@@ -77,6 +77,27 @@ describe('GeminiClient', () => {
     expect(body.systemInstruction).toEqual({ parts: [{ text: 'sys' }] })
   })
 
+  it('leaves Flash-Lite on its default thinking and skips the schema when unconstrained', async () => {
+    const m = mockFetch({ gemini: () => geminiOk('{"answer":"yes"}') })
+    const llm = new GeminiClient({ apiKey: 'k', model: 'gemini-3.5-flash-lite', fetch: m.fetch })
+    await llm.generateJson({ ...call, constrained: false })
+    const config = m.calls[0]!.body.generationConfig as Record<string, unknown>
+    expect(config.thinkingConfig).toBeUndefined()
+    expect(config.responseFormat).toBeUndefined()
+    expect(config.responseMimeType).toBe('application/json')
+  })
+
+  it('retries in plain JSON mode after a server error on the constrained call', async () => {
+    let n = 0
+    const m = mockFetch({
+      gemini: () =>
+        n++ === 0 ? json({ error: { message: 'internal' } }, 500) : geminiOk('{"answer":"ok"}'),
+    })
+    const res = await new GeminiClient({ apiKey: 'k', fetch: m.fetch }).generateJson(call)
+    expect(res.data.answer).toBe('ok')
+    expect(m.calls).toHaveLength(2)
+  })
+
   it('falls back to plain JSON mode when the schema is rejected', async () => {
     let n = 0
     const m = mockFetch({
@@ -229,7 +250,7 @@ describe('createLlmFromEnv', () => {
   it('picks fallback, single or simulated clients from env', () => {
     const both = createLlmFromEnv({ GEMINI_API_KEY: 'a', GROQ_API_KEY: 'b' }, { facts })
     expect(both.llm).toBeInstanceOf(FallbackLlm)
-    expect(both.models).toEqual(['gemini-3.8-flash', 'openai/gpt-oss-120b'])
+    expect(both.models).toEqual(['gemini-3.5-flash-lite', 'openai/gpt-oss-120b'])
     expect(both.simulated).toBe(false)
 
     const one = createLlmFromEnv({ GROQ_API_KEY: 'b', GROQ_MODEL: 'qwen/qwen3.8-27b' }, { facts })

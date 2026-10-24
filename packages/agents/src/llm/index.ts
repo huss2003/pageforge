@@ -32,7 +32,7 @@ export interface EnvLlm {
   llm: LlmClient
   /** True when no API key is set and the deterministic FakeLlm is used. */
   simulated: boolean
-  /** Model ids in fallback order, e.g. ["gemini-3.8-flash", "openai/gpt-oss-120b"]. */
+  /** Model ids in fallback order, e.g. ["gemini-3.5-flash-lite", "openai/gpt-oss-120b"]. */
   models: string[]
 }
 

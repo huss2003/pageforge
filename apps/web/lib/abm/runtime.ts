@@ -48,7 +48,7 @@ function defaultRuntime(): AbmRuntime {
           GROQ_API_KEY: secretEnv('GROQ_API_KEY') ?? undefined,
           GROQ_MODEL: process.env.GROQ_MODEL,
         },
-        { facts, timeoutMs: 110_000 },
+        { facts, timeoutMs: 75_000 },
       ),
     sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
     fetch: (input, init) => fetch(input, init),
