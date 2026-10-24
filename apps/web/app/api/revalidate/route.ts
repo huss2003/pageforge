@@ -4,6 +4,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import type { PageKind } from '@pageforge/blocks'
 import { tags } from '@/lib/content'
 import { pathFor } from '@/lib/paths'
+import { safeErrorMessage, secretEnv } from '@/lib/env'
 
 /**
  * Sanity webhook → on-demand revalidation.
@@ -25,7 +26,7 @@ interface WebhookPayload {
 }
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.SANITY_REVALIDATE_SECRET
+  const secret = secretEnv('SANITY_REVALIDATE_SECRET')
   if (!secret) {
     return NextResponse.json({ error: 'SANITY_REVALIDATE_SECRET is not set.' }, { status: 501 })
   }
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ revalidated: expired, now: Date.now() })
   } catch (error) {
-    console.error('[revalidate] webhook failed', error)
+    console.error('[revalidate] webhook failed', safeErrorMessage(error))
     return NextResponse.json({ error: 'Could not process webhook.' }, { status: 500 })
   }
 }

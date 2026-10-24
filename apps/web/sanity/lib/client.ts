@@ -1,5 +1,6 @@
 import { createClient, type SanityClient, type StegaConfig } from 'next-sanity'
 import { apiVersion, dataset, isSanityConfigured, projectId, studioBasePath } from '../env'
+import { secretEnv } from '@/lib/env'
 
 /**
  * Published-content client for the public site. Returns null when Sanity is
@@ -32,7 +33,7 @@ const stega: StegaConfig = {
 
 /** Client for draft previews; requires a Viewer token on the server. */
 export function previewClient(): SanityClient | null {
-  const token = process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_WRITE_TOKEN
+  const token = secretEnv('SANITY_API_READ_TOKEN') || secretEnv('SANITY_API_WRITE_TOKEN')
   if (!client || !token) return null
   return client.withConfig({
     token,

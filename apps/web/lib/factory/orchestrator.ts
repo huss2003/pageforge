@@ -19,6 +19,7 @@ import {
 import { publishSanityPage, saveSanityDraft } from './sanity'
 import { getRuntime } from './store'
 import type { QaRecord, RunRecord } from './types'
+import { safeErrorMessage, secretEnv } from '@/lib/env'
 
 /** Pacing for simulated runs so the live timeline is watchable (ms per model call). */
 const SIM_PACE: Record<string, number> = { planner: 1800, writer: 2600, fixer: 1600 }
@@ -54,9 +55,9 @@ function instrumentLlm(llm: LlmClient, simulated: boolean, runId: string): LlmCl
 
 function modelEnv(): Record<string, string | undefined> {
   return {
-    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    GEMINI_API_KEY: secretEnv('GEMINI_API_KEY') ?? undefined,
     GEMINI_MODEL: process.env.GEMINI_MODEL,
-    GROQ_API_KEY: process.env.GROQ_API_KEY,
+    GROQ_API_KEY: secretEnv('GROQ_API_KEY') ?? undefined,
     GROQ_MODEL: process.env.GROQ_MODEL,
   }
 }
@@ -151,7 +152,7 @@ export async function executeRun(runId: string): Promise<void> {
 
 async function failRun(runId: string, err: unknown) {
   const { store } = getRuntime()
-  const message = err instanceof Error ? err.message : String(err)
+  const message = safeErrorMessage(err)
   await store.updateRun(runId, { status: 'failed', error: message.slice(0, 500) }).catch(() => {})
 }
 
@@ -192,7 +193,7 @@ async function startQa(runId: string, attempt: number): Promise<void> {
         durationMs: now().getTime() - started.getTime(),
         ok: false,
         summary: 'GitHub Actions dispatch failed; running simulated QA instead.',
-        error: err instanceof Error ? err.message : String(err),
+        error: safeErrorMessage(err),
       })
     }
   }
@@ -349,7 +350,7 @@ export async function publishRun(runId: string, opts: { admin: boolean }): Promi
       return {
         ok: false,
         status: 502,
-        error: `Sanity rejected the publish: ${err instanceof Error ? err.message : String(err)}. The run is still ready; try again.`,
+        error: `Sanity rejected the publish: ${safeErrorMessage(err, 200)}. The run is still ready; try again.`,
       }
     }
   } else {

@@ -12,6 +12,7 @@ import {
   type RunRecord,
   type StoredStep,
 } from '@/lib/factory/types'
+import { redactSecrets } from '@/lib/env'
 
 /**
  * Supabase implementation of FactoryStore over the tables in
@@ -125,7 +126,7 @@ function toRow(patch: RunPatch, current?: RunRecord): Partial<RunRow> {
 }
 
 const fail = (what: string, error: { message: string } | null) => {
-  if (error) throw new Error(`Supabase ${what} failed: ${error.message}`)
+  if (error) throw new Error(`Supabase ${what} failed: ${redactSecrets(error.message)}`)
 }
 
 /**

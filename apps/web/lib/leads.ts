@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { z } from 'zod'
 import type { DemoFormState } from '@pageforge/ui/blocks'
+import { redactSecrets, safeErrorMessage, secretEnv } from '@/lib/env'
 
 /**
  * Demo requests from the Hoverline site.
@@ -73,7 +74,7 @@ export function hashIp(ip: string): string {
 
 /** Cloudflare Turnstile server-side check. */
 export async function verifyTurnstile(token: string | undefined, ip?: string): Promise<boolean> {
-  const secret = process.env.TURNSTILE_SECRET_KEY
+  const secret = secretEnv('TURNSTILE_SECRET_KEY')
   if (!secret) return true
   if (!token) return false
   try {
@@ -88,7 +89,7 @@ export async function verifyTurnstile(token: string | undefined, ip?: string): P
     const data = (await res.json()) as { success?: boolean }
     return data.success === true
   } catch (error) {
-    console.error('[leads] Turnstile verification failed', error)
+    console.error('[leads] Turnstile verification failed', safeErrorMessage(error))
     return false
   }
 }
@@ -99,7 +100,7 @@ let supabase: SupabaseClient | null | undefined
 export function getSupabase(): SupabaseClient | null {
   if (supabase !== undefined) return supabase
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SECRET_KEY
+  const key = secretEnv('SUPABASE_SECRET_KEY')
   supabase =
     url && key
       ? createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
@@ -146,7 +147,7 @@ export async function submitLead(formData: FormData, ctx: SubmitContext): Promis
     p_limit: LEAD_DAILY_LIMIT,
   })
   if (limitError) {
-    console.error('[leads] rate limit check failed', limitError.message)
+    console.error('[leads] rate limit check failed', redactSecrets(limitError.message))
     return {
       status: 'error',
       message: 'The form is unavailable right now. Try again in a few minutes.',
@@ -170,7 +171,7 @@ export async function submitLead(formData: FormData, ctx: SubmitContext): Promis
     source_path: ctx.sourcePath?.slice(0, 200) ?? null,
   })
   if (error) {
-    console.error('[leads] insert failed', error.message)
+    console.error('[leads] insert failed', redactSecrets(error.message))
     return { status: 'error', message: 'Your request was not saved. Try again in a few minutes.' }
   }
 

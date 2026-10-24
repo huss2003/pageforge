@@ -4,6 +4,7 @@ import { getSeedPage, getSeedPagesByKind, seedPages } from '@pageforge/content'
 import { stegaClean } from 'next-sanity'
 import { client, previewClient } from '@/sanity/lib/client'
 import { ALL_PAGES_QUERY, PAGES_BY_KIND_QUERY, PAGE_QUERY } from '@/sanity/lib/queries'
+import { safeErrorMessage } from '@/lib/env'
 
 /**
  * Content layer for the public site.
@@ -79,7 +80,7 @@ async function fetchCms<T>(
         : { next: { revalidate: REVALIDATE_SECONDS, tags: opts.tags } }),
     })
   } catch (error) {
-    const message = error instanceof Error ? error.message.split('\n')[0] : String(error)
+    const message = safeErrorMessage(error)
     console.error(`[content] Sanity request failed; using seed content instead. ${message}`)
     return null
   }

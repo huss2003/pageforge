@@ -44,7 +44,8 @@ export class QaDispatchError extends Error {
 function env(name: string): string | undefined {
   // `process` is absent in edge/browser runtimes.
   const p = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process
-  return p?.env?.[name]
+  // Tokens never contain whitespace; strip any that a wrapped paste added.
+  return p?.env?.[name]?.replace(/\s+/g, '') || undefined
 }
 
 export async function dispatchQaRun(

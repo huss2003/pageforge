@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { siteUrl } from '@/lib/site'
+import { secretEnv } from '@/lib/env'
 
 /**
  * Factory configuration, read from the environment once per call so tests
@@ -42,18 +43,18 @@ const env = (name: string) => {
 
 export function getConfig(): FactoryConfig {
   const supabaseUrl = env('NEXT_PUBLIC_SUPABASE_URL')
-  const supabaseKey = env('SUPABASE_SECRET_KEY')
+  const supabaseKey = secretEnv('SUPABASE_SECRET_KEY')
   const sanityProject = env('NEXT_PUBLIC_SANITY_PROJECT_ID')
-  const sanityToken = env('SANITY_API_WRITE_TOKEN')
+  const sanityToken = secretEnv('SANITY_API_WRITE_TOKEN')
   const adminPassword = env('FACTORY_ADMIN_PASSWORD')
-  const sessionSecret = env('SESSION_SECRET')
-  const liveModels = Boolean(env('GEMINI_API_KEY') || env('GROQ_API_KEY'))
-  const qaCallbackSecret = env('QA_CALLBACK_SECRET')
+  const sessionSecret = secretEnv('SESSION_SECRET')
+  const liveModels = Boolean(secretEnv('GEMINI_API_KEY') || secretEnv('GROQ_API_KEY'))
+  const qaCallbackSecret = secretEnv('QA_CALLBACK_SECRET')
 
   return {
     siteUrl,
     liveModels,
-    liveQa: liveModels && Boolean(env('GITHUB_QA_DISPATCH_TOKEN') && qaCallbackSecret),
+    liveQa: liveModels && Boolean(secretEnv('GITHUB_QA_DISPATCH_TOKEN') && qaCallbackSecret),
     supabase: supabaseUrl && supabaseKey ? { url: supabaseUrl, secretKey: supabaseKey } : null,
     sanity:
       sanityProject && sanityToken
@@ -66,11 +67,11 @@ export function getConfig(): FactoryConfig {
         : null,
     turnstile: {
       siteKey: env('NEXT_PUBLIC_TURNSTILE_SITE_KEY'),
-      secretKey: env('TURNSTILE_SECRET_KEY'),
+      secretKey: secretEnv('TURNSTILE_SECRET_KEY'),
     },
     // Admin needs both the password and a stable secret to sign the cookie.
     admin: adminPassword && sessionSecret ? { password: adminPassword, sessionSecret } : null,
-    previewSecret: env('PREVIEW_SECRET') ?? instanceSecret,
+    previewSecret: secretEnv('PREVIEW_SECRET') ?? instanceSecret,
     sessionSecret: sessionSecret ?? instanceSecret,
     qaCallbackSecret,
     limits: { perIpPerDay: 5, globalPerDay: 60, maxQaAttempts: 2 },

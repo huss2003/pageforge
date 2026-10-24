@@ -52,8 +52,9 @@ export interface CreateLlmOptions {
 export function createLlmFromEnv(env: LlmEnv, opts: CreateLlmOptions): EnvLlm {
   const clients: NamedLlm[] = []
   const common = { timeoutMs: opts.timeoutMs, fetch: opts.fetch }
-  const geminiKey = env.GEMINI_API_KEY?.trim()
-  const groqKey = env.GROQ_API_KEY?.trim()
+  // Keys never contain whitespace; strip any that a wrapped paste added.
+  const geminiKey = env.GEMINI_API_KEY?.replace(/\s+/g, '')
+  const groqKey = env.GROQ_API_KEY?.replace(/\s+/g, '')
   if (geminiKey) {
     clients.push(
       new GeminiClient({
