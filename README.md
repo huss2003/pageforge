@@ -66,7 +66,7 @@ cp .env.example apps/web/.env.local   # fill in what the current milestone needs
 pnpm dev                              # http://localhost:3000
 ```
 
-Checks run in CI on every push: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm build`.
+Checks run in CI on every push: `pnpm format:check`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`. Content model, editor workflow and seeding are documented in [`apps/web/README.md`](apps/web/README.md).
 
 ## Author
 

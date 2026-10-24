@@ -9,17 +9,28 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "next typegen && tsc --noEmit"
+    "typecheck": "next typegen && tsc --noEmit",
+    "seed:sanity": "tsx --env-file-if-exists=.env.local scripts/seed-sanity.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@pageforge/agents": "workspace:*",
     "@pageforge/blocks": "workspace:*",
+    "@pageforge/content": "workspace:*",
     "@pageforge/qa": "workspace:*",
     "@pageforge/ui": "workspace:*",
+    "@sanity/client": "^8.11.0",
+    "@sanity/icons": "^5.2.3",
+    "@sanity/vision": "^6.20.0",
+    "@supabase/supabase-js": "^2.118.0",
     "next": "16.4.3",
+    "next-sanity": "^13.4.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "@pageforge/content": "workspace:*"
+    "sanity": "^6.20.0",
+    "server-only": "^0.0.1",
+    "styled-components": "^6.6.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.3",
@@ -28,7 +39,10 @@
     "@types/react-dom": "^19.2.0",
     "eslint": "^9.39.5",
     "eslint-config-next": "16.4.3",
+    "schema-dts": "^2.1.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "~5.9.3"
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^5.0.5"
   }
 }

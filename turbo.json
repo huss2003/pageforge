@@ -5,7 +5,8 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**", "storybook-static/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**", "storybook-static/**"],
+      "env": ["NEXT_PUBLIC_*", "SANITY_DEMO_DATASET", "VERCEL_PROJECT_PRODUCTION_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -16,6 +17,9 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "test": {
+      "dependsOn": ["^test"]
     }
   }
 }
