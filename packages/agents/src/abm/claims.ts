@@ -451,6 +451,28 @@ export function removeRejectedClaims<C extends CheckableClaim>(
         }
       }
     }
+
+    // A list block left with too few items (one use-case tab, one FAQ) is no
+    // longer a valid block: take the whole block out, with its other claims.
+    if (!STRUCTURAL.has(block._type)) {
+      const res = blockSchema.safeParse(block)
+      const tooFew =
+        !res.success &&
+        res.error.issues.some(
+          (i) => i.code === 'too_small' && (i as { origin?: string }).origin === 'array',
+        )
+      if (tooFew) {
+        page.blocks.splice(page.blocks.indexOf(block), 1)
+        removedBlocks.push(key)
+        changed = true
+        for (const c of blockClaims) {
+          if (c.status === 'rejected') continue
+          c.status = 'rejected'
+          const withNote = c as C & { note?: string | null }
+          withNote.note ??= 'Removed with its block: too few items were left after a rejection.'
+        }
+      }
+    }
   }
 
   const parsed = pageSchema.safeParse(page)

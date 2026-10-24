@@ -118,6 +118,7 @@ Use ONLY the facts given. Rules:
 - kind "product_fact": about Hoverline; cite PRODUCT FACT ids in productFactIds. Copy numbers, names and certifications exactly from the cited fact.
 - kind "account_fact": about the account; cite ACCOUNT FACT refs (A1, A2 …) in accountFactIds. Stay close to the quote's wording and numbers.
 - kind "positioning": opinion or framing with NO numbers, customer names or certifications; no sources.
+- BRIEF.salesNotes is private context from the sales team: use it to choose emphasis, but never mention it, or any budget, date, event or meeting from it, on the page. BRIEF.painPoints say what to address; do not present them as facts the account published.
 - Never invent customers, numbers, savings, percentages, quotes or certifications. Never claim the account is a Hoverline customer. If a fact is not given, do not state it.
 - Blocks: choose from BLOCK SHAPES only, 5 to 8 blocks. First block: hero (siteType "${siteType}"). Last block: ${goal.closing}. Each _key unique ("b1", "b2" …). Respect every max length.
 - Hero primaryCta: {"label":"${goal.label}","href":"${goal.href}"}.

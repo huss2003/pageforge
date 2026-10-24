@@ -319,6 +319,28 @@ describe('removeRejectedClaims', () => {
     expect(r.changed).toBe(true)
   })
 
+  it('takes out a list block left with too few items, and its other claims', async () => {
+    const d = await draft()
+    const band = d.page.blocks.find((b) => b._type === 'statsBand')!
+    const count = band._type === 'statsBand' ? band.stats.length : 0
+    // Reject all but one stat: a stats band needs at least two.
+    const claims = d.claims.map((c) => ({
+      ...c,
+      status:
+        c.blockKey === band._key && /^stats\[(\d+)\]/.exec(c.field)?.[1] !== '0'
+          ? ('rejected' as const)
+          : ('supported' as const),
+    }))
+    expect(count).toBeGreaterThan(2)
+    const r = removeRejectedClaims(d.page, claims)
+    expect(r.page.blocks.some((b) => b._key === band._key)).toBe(false)
+    expect(r.removedBlocks).toContain(band._key)
+    expect(
+      r.claims.filter((c) => c.blockKey === band._key).every((c) => c.status === 'rejected'),
+    ).toBe(true)
+    expect(r.emptyFields).toEqual([])
+  })
+
   it('removes a list item and re-points later claims', async () => {
     const d = await draft()
     const claims = d.claims.map((c) => ({
