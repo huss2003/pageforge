@@ -22,6 +22,8 @@ import {
  * repeated once in plain JSON mode with the shape described in the prompt.
  */
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.5-flash-lite'
+/** Tried in order when GEMINI_MODEL is unset; each has its own free-tier quota. */
+export const DEFAULT_GEMINI_MODELS = [DEFAULT_GEMINI_MODEL, 'gemini-3.6-flash']
 export const GEMINI_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models'
 
 export interface GeminiOptions extends HttpClientOptions {
@@ -132,8 +134,9 @@ export class GeminiClient implements LlmClient {
     if (isGemini2) {
       // Gemini 3 recommends the default temperature (1.0); older models get the caller's.
       if (opts.temperature !== undefined) generationConfig.temperature = opts.temperature
-    } else if (this.thinkingLevel && !/flash-lite/.test(this.model)) {
-      // Flash-Lite defaults to minimal thinking, the fastest setting; leave it.
+    } else if (this.thinkingLevel && !/flash-lite|gemini-3\.6/.test(this.model)) {
+      // Flash-Lite defaults to minimal thinking, the fastest setting, and 3.6
+      // Flash documents only medium/high: leave both on their defaults.
       generationConfig.thinkingConfig = { thinkingLevel: this.thinkingLevel.toUpperCase() }
     }
 

@@ -250,8 +250,18 @@ describe('createLlmFromEnv', () => {
   it('picks fallback, single or simulated clients from env', () => {
     const both = createLlmFromEnv({ GEMINI_API_KEY: 'a', GROQ_API_KEY: 'b' }, { facts })
     expect(both.llm).toBeInstanceOf(FallbackLlm)
-    expect(both.models).toEqual(['gemini-3.5-flash-lite', 'openai/gpt-oss-120b'])
+    expect(both.models).toEqual([
+      'gemini-3.5-flash-lite',
+      'gemini-3.6-flash',
+      'openai/gpt-oss-120b',
+    ])
     expect(both.simulated).toBe(false)
+
+    const listed = createLlmFromEnv(
+      { GEMINI_API_KEY: 'a', GEMINI_MODEL: 'gemini-3.8-flash, gemini-3.5-flash-lite' },
+      { facts },
+    )
+    expect(listed.models).toEqual(['gemini-3.8-flash', 'gemini-3.5-flash-lite'])
 
     const one = createLlmFromEnv({ GROQ_API_KEY: 'b', GROQ_MODEL: 'qwen/qwen3.8-27b' }, { facts })
     expect(one.llm).toBeInstanceOf(GroqClient)
@@ -260,6 +270,32 @@ describe('createLlmFromEnv', () => {
     const none = createLlmFromEnv({ GEMINI_API_KEY: '  ' }, { facts })
     expect(none.llm).toBeInstanceOf(FakeLlm)
     expect(none.simulated).toBe(true)
+  })
+})
+
+describe('FallbackLlm retries', () => {
+  it('retries a model once after a 5xx, then moves on', async () => {
+    const sleeps: number[] = []
+    const calls: string[] = []
+    const client = (model: string, results: (Error | object)[]) => ({
+      provider: 'p',
+      model,
+      async generateJson() {
+        calls.push(model)
+        const r = results.shift()!
+        if (r instanceof Error) throw r
+        return { data: r as never, model }
+      },
+    })
+    const busy = () => new LlmError({ kind: 'server', provider: 'p', model: 'm', message: '503' })
+    const llm = new FallbackLlm([client('a', [busy(), busy()]), client('b', [{ ok: true }])], {
+      sleep: async (ms) => void sleeps.push(ms),
+      retryDelayMs: 10,
+    })
+    const res = await llm.generateJson(call)
+    expect(res.model).toBe('b')
+    expect(calls).toEqual(['a', 'a', 'b'])
+    expect(sleeps).toEqual([10])
   })
 })
 

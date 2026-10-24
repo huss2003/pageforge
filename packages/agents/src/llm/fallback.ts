@@ -31,11 +31,19 @@ export class FallbackLlm implements LlmClient {
   lastAttempts: FallbackAttempt[] = []
   private readonly cooldownUntil = new Map<NamedLlm, number>()
   private readonly now: () => number
+  private readonly sleep: (ms: number) => Promise<void>
+  /** Pause before retrying a provider that answered 5xx ("high demand"). */
+  readonly retryDelayMs: number
 
-  constructor(clients: NamedLlm[], opts: { now?: () => number } = {}) {
+  constructor(
+    clients: NamedLlm[],
+    opts: { now?: () => number; sleep?: (ms: number) => Promise<void>; retryDelayMs?: number } = {},
+  ) {
     if (clients.length === 0) throw new Error('FallbackLlm needs at least one client')
     this.clients = clients
     this.now = opts.now ?? (() => Date.now())
+    this.sleep = opts.sleep ?? ((ms) => new Promise((r) => setTimeout(r, ms)))
+    this.retryDelayMs = opts.retryDelayMs ?? 2500
   }
 
   get model(): string {
@@ -55,30 +63,38 @@ export class FallbackLlm implements LlmClient {
     let lastError: unknown
 
     for (const client of order) {
-      const started = Date.now()
-      try {
-        const result = await client.generateJson(opts)
-        this.lastAttempts.push({
-          provider: client.provider,
-          model: result.model,
-          ok: true,
-          ms: Date.now() - started,
-        })
-        return result
-      } catch (e) {
-        lastError = e
-        this.lastAttempts.push({
-          provider: client.provider,
-          model: client.model,
-          ok: false,
-          error: e instanceof Error ? e.message : String(e),
-          kind: isLlmError(e) ? e.kind : undefined,
-          ms: Date.now() - started,
-        })
-        if (isLlmError(e) && e.kind === 'rate-limit') {
-          this.cooldownUntil.set(client, this.now() + (e.retryAfterMs ?? 60_000))
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const started = Date.now()
+        try {
+          const result = await client.generateJson(opts)
+          this.lastAttempts.push({
+            provider: client.provider,
+            model: result.model,
+            ok: true,
+            ms: Date.now() - started,
+          })
+          return result
+        } catch (e) {
+          lastError = e
+          this.lastAttempts.push({
+            provider: client.provider,
+            model: client.model,
+            ok: false,
+            error: e instanceof Error ? e.message : String(e),
+            kind: isLlmError(e) ? e.kind : undefined,
+            ms: Date.now() - started,
+          })
+          if (isLlmError(e) && e.kind === 'rate-limit') {
+            this.cooldownUntil.set(client, this.now() + (e.retryAfterMs ?? 60_000))
+          }
+          if (!shouldFallback(e)) throw e
+          // A 5xx is usually a short spike: one more try on the same model.
+          if (attempt === 0 && isLlmError(e) && e.kind === 'server') {
+            await this.sleep(this.retryDelayMs)
+            continue
+          }
+          break
         }
-        if (!shouldFallback(e)) throw e
       }
     }
     if (lastError instanceof LlmError) throw lastError

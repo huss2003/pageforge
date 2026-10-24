@@ -2,7 +2,7 @@ import type { BrandFacts } from '@pageforge/content'
 import type { LlmClient } from '../types'
 import { FallbackLlm, type NamedLlm } from './fallback'
 import { FakeLlm } from './fake'
-import { DEFAULT_GEMINI_MODEL, GeminiClient } from './gemini'
+import { DEFAULT_GEMINI_MODEL, DEFAULT_GEMINI_MODELS, GeminiClient } from './gemini'
 import { DEFAULT_GROQ_MODEL, GroqClient } from './groq'
 import type { FetchLike } from './shared'
 
@@ -56,13 +56,15 @@ export function createLlmFromEnv(env: LlmEnv, opts: CreateLlmOptions): EnvLlm {
   const geminiKey = env.GEMINI_API_KEY?.replace(/\s+/g, '')
   const groqKey = env.GROQ_API_KEY?.replace(/\s+/g, '')
   if (geminiKey) {
-    clients.push(
-      new GeminiClient({
-        ...common,
-        apiKey: geminiKey,
-        model: env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL,
-      }),
-    )
+    // GEMINI_MODEL may list several models, tried in order: each has its own
+    // free-tier quota, so a busy model ("high demand") falls back to the next.
+    const models = (env.GEMINI_MODEL ?? '')
+      .split(',')
+      .map((m) => m.trim())
+      .filter(Boolean)
+    for (const model of models.length ? models : DEFAULT_GEMINI_MODELS) {
+      clients.push(new GeminiClient({ ...common, apiKey: geminiKey, model }))
+    }
   }
   if (groqKey) {
     clients.push(
