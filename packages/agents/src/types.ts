@@ -18,5 +18,7 @@ export interface LlmClient {
     /** Name used in logs and by the fake model, e.g. "abm-draft". */
     task: string
     temperature?: number
+    /** Constrain decoding to the schema where the provider supports it (default true). */
+    constrained?: boolean
   }): Promise<LlmResult<T>>
 }

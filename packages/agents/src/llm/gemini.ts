@@ -66,13 +66,18 @@ export class GeminiClient implements LlmClient {
     const schema = opts.schema
     let json: GeminiResponse
     try {
-      json = await this.call(opts, geminiSchema(toModelJsonSchema(schema)))
+      json = await this.call(
+        opts,
+        opts.constrained === false ? undefined : geminiSchema(toModelJsonSchema(schema)),
+      )
     } catch (e) {
-      // Only a rejected schema is worth a second call in plain JSON mode.
+      // A rejected schema, or a server error while decoding against it, is
+      // worth one more call in plain JSON mode; zod checks the result anyway.
       if (
+        opts.constrained !== false &&
         isLlmError(e) &&
-        e.kind === 'bad-request' &&
-        /schema|response_?format|responseFormat/i.test(e.message)
+        ((e.kind === 'bad-request' && /schema|response_?format|responseFormat/i.test(e.message)) ||
+          e.kind === 'server')
       ) {
         json = await this.call(opts, undefined)
       } else {

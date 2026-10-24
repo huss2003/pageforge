@@ -127,6 +127,9 @@ export async function draftAccountPage(llm: LlmClient, input: DraftInput): Promi
         schema: draftOutputSchema,
         task,
         temperature: 0.4,
+        // The block union is large; plain JSON plus zod is far faster than
+        // schema-constrained decoding and the prompt already lists each shape.
+        constrained: false,
       })
       model = res.model
       raw = res.data

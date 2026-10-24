@@ -9,6 +9,12 @@ export interface GenerateJsonOpts<T> {
   schema: z.ZodType<T>
   task: string
   temperature?: number
+  /**
+   * Ask the provider to constrain decoding to the schema (default true).
+   * Large union schemas make constrained decoding slow on some models; with
+   * false the model is asked for plain JSON and zod still checks the result.
+   */
+  constrained?: boolean
 }
 
 export type FetchLike = (input: string, init?: RequestInit) => Promise<Response>
