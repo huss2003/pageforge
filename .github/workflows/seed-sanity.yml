@@ -1,0 +1,47 @@
+name: Seed Sanity
+
+# Loads the Hoverline seed pages into a Sanity dataset. Safe to re-run:
+# documents have fixed ids (page-<slug>) and are replaced in one transaction.
+on:
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: Dataset to seed
+        type: choice
+        options: [production, demo]
+        default: demo
+
+concurrency:
+  group: seed-sanity-${{ inputs.dataset }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    name: Seed ${{ inputs.dataset }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate seed content
+        run: pnpm --filter @pageforge/content test
+
+      - name: Seed
+        run: pnpm seed:sanity --dataset "${{ inputs.dataset }}"
+        env:
+          # The project id is public; it may live in repository variables or secrets.
+          NEXT_PUBLIC_SANITY_PROJECT_ID: ${{ vars.NEXT_PUBLIC_SANITY_PROJECT_ID || secrets.NEXT_PUBLIC_SANITY_PROJECT_ID }}
+          SANITY_API_WRITE_TOKEN: ${{ secrets.SANITY_API_WRITE_TOKEN }}

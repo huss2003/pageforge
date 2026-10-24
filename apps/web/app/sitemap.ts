@@ -1,7 +1,30 @@
 import type { MetadataRoute } from 'next'
-import { siteUrl } from '@/lib/site'
+import { getAllPublicPages } from '@/lib/content'
+import { pathForPage, sectionIndexes } from '@/lib/paths'
+import { absoluteUrl } from '@/lib/site'
 
-// M2 replaces this static list with every published page from Sanity.
-export default function sitemap(): MetadataRoute.Sitemap {
-  return [{ url: siteUrl, changeFrequency: 'weekly', priority: 1 }]
+const priority: Record<string, number> = {
+  home: 1,
+  platform: 0.9,
+  industry: 0.8,
+  page: 0.7,
+  caseStudy: 0.6,
+  landing: 0.4,
+}
+
+/** Every public page (noindex pages excluded) plus the section indexes. */
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const pages = await getAllPublicPages()
+  return [
+    ...pages.map((page) => ({
+      url: absoluteUrl(pathForPage(page)),
+      changeFrequency: page.kind === 'home' ? ('weekly' as const) : ('monthly' as const),
+      priority: priority[page.kind] ?? 0.5,
+    })),
+    ...Object.values(sectionIndexes).map((index) => ({
+      url: absoluteUrl(index.path),
+      changeFrequency: 'monthly' as const,
+      priority: 0.7,
+    })),
+  ]
 }
