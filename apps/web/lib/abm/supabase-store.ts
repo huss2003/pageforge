@@ -226,20 +226,26 @@ export function createSupabaseStore(db: SupabaseClient): AbmStore {
       return update('claims', id, claimToRow({ ...current, ...patch }), claimFromRow)
     },
     async replaceClaims(versionId, claims) {
-      const del = await t('claims').delete().eq('version_id', versionId)
-      fail('delete claims', del.error)
-      if (!claims.length) return []
-      const { data, error } = await t('claims')
-        .insert(
-          claims.map((c) => claimToRow({ ...c, versionId })),
-          {
-            // Rows that omit a column (e.g. a new claim's id) get its default, not null.
-            defaultToNull: false,
-          },
-        )
-        .select('*')
-      fail('replaceClaims', error)
-      return (data ?? []).map((r) => claimFromRow(r as Row))
+      // Write first, prune after: a failed write must never leave the version
+      // without its claims (they carry the sources the reviewer checked).
+      let kept: Claim[] = []
+      if (claims.length) {
+        const { data, error } = await t('claims')
+          .upsert(
+            claims.map((c) => claimToRow({ ...c, versionId })),
+            // Rows that omit a column (a new claim's id) get its default, not null.
+            { onConflict: 'id', defaultToNull: false },
+          )
+          .select('*')
+        fail('replaceClaims', error)
+        kept = (data ?? []).map((r) => claimFromRow(r as Row))
+      }
+      const keepIds = kept.map((c) => c.id).filter(isUuid)
+      let del = t('claims').delete().eq('version_id', versionId)
+      if (keepIds.length) del = del.not('id', 'in', `(${keepIds.join(',')})`)
+      const { error: delError } = await del
+      fail('prune claims', delError)
+      return kept
     },
 
     async addEvents(events) {
