@@ -45,11 +45,25 @@ export const draftOutputSchema = z.object({
   title: z.string().trim().min(1).max(200),
   seoTitle: z.string().trim().min(1).max(200),
   seoDescription: z.string().trim().min(1).max(400),
-  blocks: z.array(blockSchema).min(3).max(10),
+  // Keys are bookkeeping, not content: fill any the model left out with the
+  // "b1", "b2" … convention the prompt asks for, so claims still line up.
+  blocks: z.preprocess(
+    (v) =>
+      Array.isArray(v)
+        ? v.map((b, i) =>
+            b && typeof b === 'object' && typeof (b as { _key?: unknown })._key !== 'string'
+              ? { ...b, _key: `b${i + 1}` }
+              : b,
+          )
+        : v,
+    z.array(blockSchema).min(3).max(10),
+  ),
   claims: z.array(claimOutput).max(48),
 })
 
-export type DraftOutput = z.input<typeof draftOutputSchema>
+export type DraftOutput = Omit<z.input<typeof draftOutputSchema>, 'blocks'> & {
+  blocks: z.input<typeof blockSchema>[]
+}
 type ParsedDraft = z.output<typeof draftOutputSchema>
 
 export interface DraftInput {

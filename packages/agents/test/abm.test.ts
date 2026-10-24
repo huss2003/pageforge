@@ -7,6 +7,7 @@ import {
   certificationNames,
   customerNames,
   draftAccountPage,
+  draftOutputSchema,
   numberTokens,
   removeRejectedClaims,
   selectFacts,
@@ -84,6 +85,13 @@ describe('draftAccountPage (simulated)', () => {
       )
       expect(out.claims.filter((c) => c.text.includes(UNSUPPORTED_CLAIM_PHRASE))).toHaveLength(1)
     }
+  })
+
+  it('fills block keys the model left out, in the b1, b2 … order', () => {
+    const good = simulateDraft(northstarBrief, [], facts)
+    const keyless = { ...good, blocks: good.blocks.map(({ _key, ...rest }) => rest) }
+    const parsed = draftOutputSchema.parse(keyless)
+    expect(parsed.blocks.map((b) => b._key)).toEqual(good.blocks.map((_, i) => `b${i + 1}`))
   })
 
   it('repairs once, then gives up', async () => {
