@@ -26,12 +26,12 @@ const callbackSchema = z.object({
       z.object({
         source: z.enum(['lighthouse', 'axe', 'visual']),
         id: z.string().max(120),
-        message: z.string().max(1000),
+        message: z.string().transform((m) => m.slice(0, 1000)),
         blockKey: z.string().max(64).optional(),
       }),
     )
-    .max(200)
-    .default([]),
+    .default([])
+    .transform((list) => list.slice(0, 200)),
   passed: z.boolean(),
   screenshotUrl: z.string().url().max(2000).nullish(),
   workflowRunUrl: z.string().url().max(2000).nullish(),

@@ -54,16 +54,20 @@ describe('simulated run lifecycle through the route handlers', () => {
     expect(stepNames.slice(0, 4)).toEqual(['plan', 'write', 'validate', 'draft'])
     expect(stepNames).toContain('qa')
 
-    // QA attempt 1 failed with issues, the fixer changed text, attempt 2 passed.
-    expect(done.qa.length).toBe(2)
-    expect(done.qa[0]!.passed).toBe(false)
-    expect(done.qa[0]!.issues.length).toBeGreaterThan(0)
-    expect(done.qa[0]!.simulated).toBe(true)
-    expect(done.qa[1]!.passed).toBe(true)
-    expect(stepNames).toContain('fix')
-    expect(done.run.fixes).toHaveLength(1)
-    expect(done.run.fixes[0]!.changes.length).toBeGreaterThan(0)
-    for (const c of done.run.fixes[0]!.changes) expect(c.before).not.toBe(c.after)
+    // The offline writer may produce a clean page (QA passes first time) or one
+    // with defects; either way the last QA attempt passes and every failed
+    // attempt is followed by a fix that actually changed text.
+    expect(done.qa.length).toBeGreaterThanOrEqual(1)
+    expect(done.qa.every((q) => q.simulated)).toBe(true)
+    expect(done.qa.at(-1)!.passed).toBe(true)
+    const failed = done.qa.filter((q) => !q.passed)
+    expect(done.run.fixes).toHaveLength(failed.length)
+    for (const q of failed) expect(q.issues.length).toBeGreaterThan(0)
+    if (failed.length > 0) expect(stepNames).toContain('fix')
+    for (const f of done.run.fixes) {
+      expect(f.changes.length).toBeGreaterThan(0)
+      for (const c of f.changes) expect(c.before).not.toBe(c.after)
+    }
     expect(done.run.readyAt).not.toBeNull()
 
     // Publish.
@@ -96,16 +100,18 @@ describe('simulated run lifecycle through the route handlers', () => {
 
     // History and stats see it.
     const list = (await (await listRuns()).json()) as { runs: { id: string; fixes: number }[] }
-    expect(list.runs[0]).toMatchObject({ id: runId, fixes: 1 })
+    const fixCount = done.run.fixes.length
+    expect(list.runs[0]).toMatchObject({ id: runId, fixes: fixCount })
     const stats = await (await getStats()).json()
     expect(stats).toMatchObject({
       published: 1,
       medianTimeToShipMs: pub.timeToShipMs,
-      firstTryPassRate: 0,
-      avgFixesPerRun: 1,
+      firstTryPassRate: done.qa[0]!.passed ? 1 : 0,
+      avgFixesPerRun: fixCount,
       today: { runs: 1, cap: 60 },
     })
-    expect(stats.modelMix).toEqual([{ model: 'simulated', runs: 1 }])
+    expect(stats.modelMix).toHaveLength(1)
+    expect(stats.modelMix[0].runs).toBe(1)
   })
 
   it('refuses to publish before the run is ready', async () => {

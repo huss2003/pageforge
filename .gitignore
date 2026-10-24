@@ -23,6 +23,7 @@ next-env.d.ts
 # test + QA output
 coverage/
 playwright-report/
+qa-output/
 test-results/
 .lighthouseci/
 

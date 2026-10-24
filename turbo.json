@@ -15,15 +15,12 @@
       "dependsOn": ["^typecheck"]
     },
     "test": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^test"],
       "outputs": []
     },
     "dev": {
       "cache": false,
       "persistent": true
-    },
-    "test": {
-      "dependsOn": ["^test"]
     }
   }
 }

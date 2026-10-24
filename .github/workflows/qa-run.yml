@@ -1,0 +1,105 @@
+name: QA run
+
+# Started by the web app (packages/qa/src/dispatch.ts) for each draft preview.
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: PageForge run id (pf_runs.id)
+        required: true
+        type: string
+      url:
+        description: Draft preview URL to test
+        required: true
+        type: string
+      attempt:
+        description: QA attempt number (1 + fixer loops)
+        required: false
+        default: '1'
+        type: string
+      callback_url:
+        description: Web app endpoint that receives the QA result
+        required: false
+        default: ''
+        type: string
+
+run-name: QA ${{ inputs.run_id }} attempt ${{ inputs.attempt }}
+
+concurrency:
+  group: qa-${{ inputs.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  qa:
+    name: Lighthouse, axe, screenshot
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      QA_CALLBACK_SECRET: ${{ secrets.QA_CALLBACK_SECRET }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile --filter @pageforge/qa...
+
+      - name: Install Chromium
+        run: pnpm --filter @pageforge/qa exec playwright install --with-deps chromium
+
+      - name: Run QA
+        id: qa
+        # Inputs go through env, never interpolated into the script.
+        env:
+          QA_URL: ${{ inputs.url }}
+          QA_RUN_ID: ${{ inputs.run_id }}
+          QA_ATTEMPT: ${{ inputs.attempt }}
+          QA_CALLBACK_URL: ${{ inputs.callback_url }}
+        run: |
+          args=(--url "$QA_URL" --run-id "$QA_RUN_ID" --attempt "$QA_ATTEMPT" --out-dir "$GITHUB_WORKSPACE/qa-output")
+          if [ -n "$QA_CALLBACK_URL" ]; then args+=(--callback "$QA_CALLBACK_URL"); fi
+          set +e
+          pnpm --filter @pageforge/qa exec tsx src/run.ts "${args[@]}"
+          code=$?
+          set -e
+          # 1 = thresholds not met (a normal result, reported via callback); 2 = crash.
+          if [ "$code" -eq 2 ]; then exit 2; fi
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f qa-output/result.json ]; then
+            node -e '
+              const r = require("./qa-output/result.json");
+              const s = r.scores;
+              const lines = [
+                `### QA ${r.passed ? "passed" : "failed"}`,
+                "",
+                "| Performance | Accessibility | SEO | Best practices |",
+                "| --- | --- | --- | --- |",
+                `| ${s.performance} | ${s.accessibility} | ${s.seo} | ${s.bestPractices} |`,
+                "",
+                `${r.issues.length} issue(s). ${r.error ? "Error: " + r.error : ""}`,
+              ];
+              require("fs").appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join("\n") + "\n");
+            '
+          fi
+
+      - name: Upload screenshot and result
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: qa-${{ inputs.run_id }}-attempt-${{ inputs.attempt }}
+          path: |
+            qa-output/result.json
+            qa-output/screenshot.png
+          if-no-files-found: warn
+          retention-days: 14
