@@ -36,7 +36,7 @@ export function summarize(page: Page): PageSummary {
   }
 }
 
-const siteOrder: SiteType[] = ['refinery', 'substation', 'open-pit']
+const siteOrder: SiteType[] = ['refinery', 'substation', 'open-pit', 'port', 'solar-farm']
 
 /** Stable order: refinery, substation, open-pit, then anything else by title. */
 export function sortBySite(pages: PageSummary[]): PageSummary[] {

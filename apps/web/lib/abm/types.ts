@@ -91,6 +91,8 @@ export interface SourceFact {
 
 export type ClaimKind = 'product_fact' | 'account_fact' | 'positioning'
 export type ClaimStatus = 'supported' | 'needs_review' | 'rejected'
+/** Who created a claim: the drafting model, the validator ("Unsourced statement") or an edit. */
+export type ClaimOrigin = 'draft' | 'validator' | 'edit'
 
 export type ClaimSource =
   | { type: 'product_fact'; factId: string; label: string }
@@ -110,6 +112,8 @@ export interface Claim {
   reviewedBy: ActorRole | null
   reviewedAt: string | null
   note: string | null
+  /** Added: where the claim came from. 'validator' = auto-created "Unsourced statement". */
+  origin?: ClaimOrigin
 }
 
 export type VersionOrigin = 'ai_draft' | 'edit' | 'duplicate' | 'rollback'
@@ -196,6 +200,10 @@ export interface CampaignDetail extends Campaign {
   /** Absolute public URL when published (includes token for private pages). */
   liveUrl: string | null
   trackingLinks: TrackingLink[]
+  /** Added: last draft failure (redacted), shown while status is back to 'draft'. */
+  lastError?: string | null
+  /** Added: true when the campaign was created by the demo seed (metrics are illustrative). */
+  illustrative?: boolean
 }
 
 // ---------------------------------------------------------------------------
@@ -233,6 +241,10 @@ export interface Lead {
   crmId: string | null
   crmStatus: 'synced' | 'pending' | 'failed'
   crmError: string | null
+  /** Added: seed data, labelled "illustrative" in the UI. */
+  illustrative?: boolean
+  /** Added: start of the meeting booked by this lead (GET /api/abm/leads only). */
+  meetingAt?: string | null
 }
 
 export interface Meeting {
@@ -242,6 +254,8 @@ export interface Meeting {
   leadId: string | null
   slotStart: string
   timezone: string
+  /** Added: seed data, labelled "illustrative" in the UI. */
+  illustrative?: boolean
 }
 
 export interface EngagementSummary {
@@ -256,6 +270,8 @@ export interface EngagementSummary {
   lastActiveAt: string | null
   hot: boolean
   timeline: { at: string; visitorId: string; type: EventType; props: Record<string, unknown> }[]
+  /** Added: true when any event shown is illustrative seed data. */
+  illustrative?: boolean
 }
 
 export interface ConversionComparison {
@@ -276,11 +292,35 @@ export interface AuditEntry {
 }
 
 // ---------------------------------------------------------------------------
+// Added: session and runtime mode (GET /api/abm/session)
+// ---------------------------------------------------------------------------
+
+export interface AbmMode {
+  /** 'simulated' when no Gemini/Groq key is set (FakeLlm drafts). */
+  models: 'live' | 'simulated'
+  storage: 'supabase' | 'memory'
+  crm: 'hubspot' | 'builtin'
+  /** The main workspace can be unlocked (FACTORY_ADMIN_PASSWORD is set). */
+  workspacePasswordEnabled: boolean
+  turnstileSiteKey: string | null
+  limits: { draftsPerIpPerDay: number; draftsPerDay: number }
+}
+
+export interface SessionInfo {
+  workspace: Workspace
+  role: Role
+  /** True when Gemini/Groq keys are set; false in simulation. */
+  liveModels: boolean
+  mode: AbmMode
+}
+
+// ---------------------------------------------------------------------------
 // API contract (Route Handlers under /api/abm). All JSON, cache: no-store.
 // Session cookie carries { workspace, role }. Errors: { error: string, fields? }.
 // ---------------------------------------------------------------------------
 //
 // POST   /api/abm/session                 { role, workspace?, password? } → { workspace, role }
+// GET    /api/abm/session                 → SessionInfo { workspace, role, liveModels, mode } | 401   (added)
 // DELETE /api/abm/session                 → 204
 // GET    /api/abm/campaigns               → { campaigns: (Campaign & { accountName, claimsNeedingReview, hot })[] }
 // POST   /api/abm/campaigns               AccountBrief → 201 { campaignId }   (creates account + campaign, status draft)
@@ -293,7 +333,7 @@ export interface AuditEntry {
 // PATCH  /api/abm/claims/[id]             { status: 'supported'|'rejected'|'needs_review', note? } → VersionWithClaims   (reviewer only)
 // POST   /api/abm/versions/[id]/approve   { note? } → VersionWithClaims   (reviewer only; blocked by publishBlockers)
 // POST   /api/abm/versions/[id]/request-changes { note } → VersionWithClaims (reviewer only)
-// POST   /api/abm/campaigns/[id]/publish  { versionId } → { liveUrl }   (marketer; version must be approved)
+// POST   /api/abm/campaigns/[id]/publish  { versionId, expiresAt?: ISO | null } → { liveUrl }   (marketer; version must be approved)
 // POST   /api/abm/campaigns/[id]/pause    → Campaign
 // POST   /api/abm/campaigns/[id]/resume   → Campaign
 // POST   /api/abm/campaigns/[id]/rollback { versionId } → { liveUrl }  (republish an earlier approved version)

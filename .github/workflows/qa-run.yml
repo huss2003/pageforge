@@ -1,6 +1,6 @@
 name: QA run
 
-# Started by the web app (packages/qa/src/dispatch.ts) for each draft preview.
+# Run manually (Actions → QA run) against any page URL, e.g. a published account page.
 on:
   workflow_dispatch:
     inputs:

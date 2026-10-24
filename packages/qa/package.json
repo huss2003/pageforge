@@ -5,8 +5,7 @@
   "description": "Lighthouse, axe and screenshot checks run against draft page previews.",
   "type": "module",
   "exports": {
-    ".": "./src/index.ts",
-    "./dispatch": "./src/dispatch.ts"
+    ".": "./src/index.ts"
   },
   "bin": {
     "pageforge-qa": "./bin/pageforge-qa.mjs"

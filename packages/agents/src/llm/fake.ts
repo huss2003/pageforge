@@ -1,8 +1,8 @@
-import type { Block, BlockKind } from '@pageforge/blocks'
 import type { BrandFacts } from '@pageforge/content'
-import type { Brief, LlmClient, LlmResult, PagePlan } from '../types'
+import { simulateDraft, simulateSelectFacts, type SimAccountFact } from '../abm/simulate'
+import type { AbmBrief } from '../abm/types'
+import type { LlmClient, LlmResult } from '../types'
 import { LlmError } from './errors'
-import { composeBlock, composePage, composePlan } from './compose'
 import { formatIssues, type GenerateJsonOpts } from './shared'
 
 export const FAKE_MODEL = 'simulated'
@@ -15,8 +15,8 @@ export interface FakeLlmOptions {
 
 /**
  * Deterministic, offline model. Reads the tagged lines our prompts contain
- * (BRIEF:, PLAN:, BLOCKS:) and composes output from the brand facts.
- * Used by tests and by the public demo's keyless simulation mode.
+ * (BRIEF:, SENTENCES:, ACCOUNT_FACTS:) and composes output from the brand
+ * facts. Used by tests and by the public demo's keyless simulation mode.
  */
 export class FakeLlm implements LlmClient {
   readonly provider = 'fake'
@@ -60,49 +60,18 @@ export class FakeLlm implements LlmClient {
   }
 
   private answer(opts: GenerateJsonOpts<unknown>): unknown {
-    const brief = tagged<Brief>(opts.prompt, 'BRIEF')
     switch (opts.task) {
-      case 'planner':
+      case 'abm-select-facts': {
+        const sentences = tagged<string[]>(opts.prompt, 'SENTENCES')
+        if (!sentences) throw missing('SENTENCES', opts.task)
+        return simulateSelectFacts(sentences)
+      }
+      case 'abm-draft':
+      case 'abm-repair': {
+        const brief = tagged<AbmBrief>(opts.prompt, 'BRIEF')
+        const accountFacts = tagged<SimAccountFact[]>(opts.prompt, 'ACCOUNT_FACTS') ?? []
         if (!brief) throw missing('BRIEF', opts.task)
-        return composePlan(brief, this.facts)
-      case 'writer': {
-        const plan = tagged<PagePlan>(opts.prompt, 'PLAN')
-        if (!brief || !plan) throw missing('BRIEF/PLAN', opts.task)
-        return composePage(brief, plan, this.facts)
-      }
-      case 'writer-retry': {
-        const plan = tagged<PagePlan>(opts.prompt, 'PLAN')
-        if (!brief || !plan) throw missing('BRIEF/PLAN', opts.task)
-        const blocks = tagged<Block[]>(opts.prompt, 'BLOCKS')
-        // Full rewrite: the prompt carries the whole plan.
-        if (!blocks) return composePage(brief, plan, this.facts)
-        // Targeted retry: recompose only the listed blocks, plus fresh title/seo.
-        const page = composePage(brief, { ...plan, slug: 'x', sections: [] }, this.facts)
-        return {
-          title: page.title,
-          seo: page.seo,
-          blocks: fakeRetryBlocks(brief, blocks, this.facts),
-        }
-      }
-      case 'fixer': {
-        const ctx = tagged<{
-          goal?: Brief['goal']
-          siteType: Brief['siteType']
-          prospect?: string
-          audience?: string[]
-        }>(opts.prompt, 'CONTEXT')
-        const blocks = tagged<Block[]>(opts.prompt, 'BLOCKS') ?? []
-        const b: Brief = {
-          prospect: ctx?.prospect ?? 'your site',
-          siteType: ctx?.siteType ?? 'refinery',
-          audience: ctx?.audience?.length ? ctx.audience : ['Maintenance managers'],
-          goal: ctx?.goal ?? 'contact-sales',
-        }
-        return {
-          blocks: blocks.map((x) =>
-            composeBlock(x._type as BlockKind, x._key, b, { title: '', angle: '' }, this.facts),
-          ),
-        }
+        return simulateDraft(brief, accountFacts, this.facts)
       }
       default:
         throw new LlmError({
@@ -113,11 +82,6 @@ export class FakeLlm implements LlmClient {
         })
     }
   }
-}
-
-/** Targeted retry: recompose only the blocks the prompt listed. */
-export function fakeRetryBlocks(brief: Brief, blocks: Block[], facts: BrandFacts): Block[] {
-  return blocks.map((b) => composeBlock(b._type, b._key, brief, { title: '', angle: '' }, facts))
 }
 
 function tagged<T>(prompt: string, tag: string): T | undefined {
