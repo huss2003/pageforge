@@ -4,7 +4,7 @@ import { engagement } from '@/lib/abm/service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 export const GET = handle(async (req: Request, ctx: Ctx) => {
   const auth = requireRole(req, 'any')

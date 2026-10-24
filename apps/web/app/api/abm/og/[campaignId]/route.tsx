@@ -11,7 +11,7 @@ import { INDUSTRY_LABEL } from '@/lib/abm/paths'
  */
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 const PAPER = '#EDF0EC'
 const INK = '#14233A'

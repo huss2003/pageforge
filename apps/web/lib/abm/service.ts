@@ -98,7 +98,47 @@ export async function loadCampaign(actor: Actor | null, id: string): Promise<Cam
   const c = await rt().store.getCampaign(id)
   if (!c || (actor && c.workspace !== actor.workspace))
     throw new AbmError(404, 'Campaign not found.')
-  return expireIfDue(c)
+  return expireIfDue(await recoverStaleDraft(c))
+}
+
+/** A draft still "generating" after this long was cut off (function timeout, deploy). */
+export const STALE_DRAFT_MS = 6 * 60 * 1000
+
+/**
+ * Background drafts run after the response; if the platform stops that work
+ * the campaign would stay "generating" for ever. Reset it so the marketer can
+ * try again, and say so in the audit log.
+ */
+export async function recoverStaleDraft(c: Campaign): Promise<Campaign> {
+  if (c.status !== 'generating') return c
+  if (rt().now().getTime() - Date.parse(c.updatedAt) < STALE_DRAFT_MS) return c
+  const { store } = rt()
+  const stuck = c.currentVersionId ? await store.getVersion(c.currentVersionId) : null
+  if (stuck && stuck.origin === 'ai_draft' && stuck.state === 'draft')
+    await store.deleteVersion(stuck.id).catch(() => undefined)
+  const remaining = await store.listVersions(c.id)
+  const next = await store.updateCampaign(c.id, {
+    status: 'draft',
+    currentVersionId: remaining.at(-1)?.id ?? null,
+  })
+  await audit({ workspace: c.workspace, role: 'system' }, c.id, 'draft.failed', {
+    error: 'The draft did not finish in time. Generate it again.',
+  }).catch(() => undefined)
+  return next
+}
+
+/** One log line per model call chain, without prompts or secrets. */
+function logLlm(step: string, llm: unknown, started: number) {
+  const attempts = (llm as { lastAttempts?: { model: string; ok: boolean; kind?: string }[] })
+    .lastAttempts
+  console.info(
+    '[abm] llm',
+    JSON.stringify({
+      step,
+      ms: rt().now().getTime() - started,
+      attempts: attempts?.map((a) => ({ model: a.model, ok: a.ok, kind: a.kind })),
+    }),
+  )
 }
 
 export async function expireIfDue(c: Campaign): Promise<Campaign> {
@@ -449,6 +489,7 @@ export async function gatherSources(actor: Actor, id: string, urls?: string[]) {
   pages.forEach((p, i) => p.sentences.forEach((s) => flat.push({ page: i, text: s })))
   const capped = flat.slice(0, 240)
   const { llm } = rt().llm()
+  const selectStarted = rt().now().getTime()
   const selected = capped.length
     ? (
         await selectFacts(llm, {
@@ -459,7 +500,7 @@ export async function gatherSources(actor: Actor, id: string, urls?: string[]) {
             targetRole: account.targetRole ?? '',
           },
           sentences: capped.map((s) => s.text),
-        })
+        }).finally(() => logLlm('select-facts', llm, selectStarted))
       ).facts
     : []
   const factsByPage = new Map<number, NewSourceFact[]>()
@@ -627,7 +668,7 @@ export async function runDraft(
       slug: campaign.slug,
       noindex: campaign.noindex,
       bannedPhrases: brandFacts.voice.bannedPhrases,
-    })
+    }).finally(() => logLlm('draft', env.llm, started))
     const claims = revalidate({
       page: draft.page,
       claims: draft.claims.map((c) => ({

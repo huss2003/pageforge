@@ -7,7 +7,7 @@ import { meetingBodySchema } from '@/lib/abm/schemas'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /** Book a demo-calendar slot (no double booking). Turnstile when configured, 5 per IP per day. */
 export const POST = handle(async (req: Request) => {

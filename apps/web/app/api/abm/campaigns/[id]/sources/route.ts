@@ -6,7 +6,7 @@ import { gatherSources } from '@/lib/abm/service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /** Fetch the account's public pages and extract verbatim facts. */
 export const POST = handle(async (req: Request, ctx: Ctx) => {

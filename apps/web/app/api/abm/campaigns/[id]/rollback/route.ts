@@ -5,7 +5,7 @@ import { rollback } from '@/lib/abm/service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /** Republish an earlier approved version. */
 export const POST = handle(async (req: Request, ctx: Ctx) => {

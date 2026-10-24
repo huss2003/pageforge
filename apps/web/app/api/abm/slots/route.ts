@@ -4,7 +4,7 @@ import { handle } from '@/lib/abm/route'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /** Open demo-calendar slots (UTC ISO) for the next 10 working days. */
 export const GET = handle(async (req: Request) => {

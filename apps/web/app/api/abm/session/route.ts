@@ -16,7 +16,7 @@ import type { SessionInfo } from '@/lib/abm/types'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /** Start or switch a session. Demo: any role. Main: needs the workspace password. */
 export const POST = handle(async (req: Request) => {

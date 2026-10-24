@@ -5,7 +5,7 @@ import { publish } from '@/lib/abm/service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /** Publish an approved version. */
 export const POST = handle(async (req: Request, ctx: Ctx) => {

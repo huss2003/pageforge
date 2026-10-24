@@ -5,7 +5,7 @@ import { editVersion } from '@/lib/abm/service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /** Edit fields, CTA or SEO. Editing an approved version creates a new 'edit' version. */
 export const PATCH = handle(async (req: Request, ctx: Ctx) => {

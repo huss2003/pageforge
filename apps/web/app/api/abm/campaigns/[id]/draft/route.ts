@@ -6,7 +6,7 @@ import { startDraft } from '@/lib/abm/service'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /** Start the AI draft (status generating → in_review); the work runs after the response. */
 export const POST = handle(async (req: Request, ctx: Ctx) => {

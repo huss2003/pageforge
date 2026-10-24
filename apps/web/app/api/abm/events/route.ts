@@ -5,7 +5,7 @@ import { trackEventSchema } from '@/lib/abm/schemas'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 300
 
 /**
  * First-party analytics beacon (navigator.sendBeacon). Always 204 so the
