@@ -68,6 +68,8 @@ export const statsBandSchema = base('statsBand', {
 export const featureGridSchema = base('featureGrid', {
   heading: shortText(90),
   intro: shortText(280).optional(),
+  /** Optional: which site's sample inspection report sits beside the heading. */
+  siteType: siteTypeSchema.optional(),
   features: z
     .array(z.object({ title: shortText(60), body: shortText(240) }))
     .min(2)
