@@ -13,6 +13,8 @@ export interface FallbackAttempt {
   ok: boolean
   error?: string
   kind?: string
+  /** Wall-clock time of this attempt. */
+  ms?: number
 }
 
 /**
@@ -53,9 +55,15 @@ export class FallbackLlm implements LlmClient {
     let lastError: unknown
 
     for (const client of order) {
+      const started = Date.now()
       try {
         const result = await client.generateJson(opts)
-        this.lastAttempts.push({ provider: client.provider, model: result.model, ok: true })
+        this.lastAttempts.push({
+          provider: client.provider,
+          model: result.model,
+          ok: true,
+          ms: Date.now() - started,
+        })
         return result
       } catch (e) {
         lastError = e
@@ -65,6 +73,7 @@ export class FallbackLlm implements LlmClient {
           ok: false,
           error: e instanceof Error ? e.message : String(e),
           kind: isLlmError(e) ? e.kind : undefined,
+          ms: Date.now() - started,
         })
         if (isLlmError(e) && e.kind === 'rate-limit') {
           this.cooldownUntil.set(client, this.now() + (e.retryAfterMs ?? 60_000))
