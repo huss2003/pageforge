@@ -130,14 +130,22 @@ export async function recoverStaleDraft(c: Campaign): Promise<Campaign> {
 /** One log line per model call chain, without prompts or secrets. */
 function logLlm(step: string, llm: unknown, started: number) {
   const attempts = (
-    llm as { lastAttempts?: { model: string; ok: boolean; kind?: string; ms?: number }[] }
+    llm as {
+      lastAttempts?: { model: string; ok: boolean; kind?: string; ms?: number; error?: string }[]
+    }
   ).lastAttempts
   console.info(
     '[abm] llm',
     JSON.stringify({
       step,
       ms: rt().now().getTime() - started,
-      attempts: attempts?.map((a) => ({ model: a.model, ok: a.ok, kind: a.kind, ms: a.ms })),
+      attempts: attempts?.map((a) => ({
+        model: a.model,
+        ok: a.ok,
+        kind: a.kind,
+        ms: a.ms,
+        ...(a.error ? { error: safeErrorMessage(a.error, 240) } : {}),
+      })),
     }),
   )
 }
