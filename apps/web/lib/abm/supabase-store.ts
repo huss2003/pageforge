@@ -136,7 +136,13 @@ export function createSupabaseStore(db: SupabaseClient): AbmStore {
         sources.push(s)
         if (item.facts.length) {
           const { data, error } = await t('source_facts')
-            .insert(item.facts.map((f) => toRow({ ...f, sourceId: s.id, accountId })))
+            .insert(
+              item.facts.map((f) => toRow({ ...f, sourceId: s.id, accountId })),
+              {
+                // Rows that omit a column (e.g. a new claim's id) get its default, not null.
+                defaultToNull: false,
+              },
+            )
             .select('*')
           fail('insert source facts', error)
           facts.push(...(data ?? []).map((r) => fromRow<import('./types').SourceFact>(r as Row)))
@@ -174,7 +180,13 @@ export function createSupabaseStore(db: SupabaseClient): AbmStore {
       let out: Claim[] = []
       if (claims.length) {
         const { data, error } = await t('claims')
-          .insert(claims.map((c) => claimToRow({ ...c, versionId: version.id })))
+          .insert(
+            claims.map((c) => claimToRow({ ...c, versionId: version.id })),
+            {
+              // Rows that omit a column (e.g. a new claim's id) get its default, not null.
+              defaultToNull: false,
+            },
+          )
           .select('*')
         fail('insert claims', error)
         out = (data ?? []).map((r) => claimFromRow(r as Row))
@@ -218,7 +230,13 @@ export function createSupabaseStore(db: SupabaseClient): AbmStore {
       fail('delete claims', del.error)
       if (!claims.length) return []
       const { data, error } = await t('claims')
-        .insert(claims.map((c) => claimToRow({ ...c, versionId })))
+        .insert(
+          claims.map((c) => claimToRow({ ...c, versionId })),
+          {
+            // Rows that omit a column (e.g. a new claim's id) get its default, not null.
+            defaultToNull: false,
+          },
+        )
         .select('*')
       fail('replaceClaims', error)
       return (data ?? []).map((r) => claimFromRow(r as Row))
@@ -228,6 +246,7 @@ export function createSupabaseStore(db: SupabaseClient): AbmStore {
       if (!events.length) return
       const { error } = await t('events').insert(
         events.map((e) => toRow({ ...e, props: e.props ?? {}, utm: e.utm ?? {} })),
+        { defaultToNull: false },
       )
       fail('addEvents', error)
     },
