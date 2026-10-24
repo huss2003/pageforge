@@ -83,7 +83,7 @@ Use ONLY the facts given. Rules:
 - Blocks: choose from BLOCK SHAPES only, 5 to 8 blocks. First block: hero (siteType "${siteType}"). Last block: ${goal.closing}. Each _key unique ("b1", "b2" …). Respect every max length.
 - Hero primaryCta: {"label":"${goal.label}","href":"${goal.href}"}.
 - Plain, specific sentences an operations or security lead would use; sentence case headings; no exclamation marks; no hype.
-${input.bannedPhrases?.length ? `- Never use these words: ${input.bannedPhrases.join(', ')}.\n` : ''}Output JSON: {"title","seoTitle"(≤60),"seoDescription"(≤160),"blocks":[...],"claims":[{"blockKey","field","text","kind","productFactIds":[],"accountFactIds":[]}]}
+${input.bannedPhrases?.length ? `- Never use these words: ${input.bannedPhrases.join(', ')}.\n` : ''}Output JSON: {"title","seoTitle"(≤60, no brand suffix: the site appends " | Hoverline"),"seoDescription"(≤160),"blocks":[...],"claims":[{"blockKey","field","text","kind","productFactIds":[],"accountFactIds":[]}]}
 
 BLOCK SHAPES:
 ${blockShapes(ABM_BLOCK_KINDS)}`
@@ -201,7 +201,7 @@ function assemble(out: ParsedDraft, input: DraftInput): Page | null {
     title: clipTo(out.title, 90),
     slug: input.slug ?? slugFrom(input.brief.companyName),
     seo: {
-      title: clipTo(out.seoTitle, 60),
+      title: clipTo(out.seoTitle.replace(/\s*[|·–—-]\s*Hoverline\s*$/i, ''), 60),
       description: clipTo(out.seoDescription, 160),
       noindex: input.noindex ?? true,
     },

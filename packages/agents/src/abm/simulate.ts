@@ -268,7 +268,7 @@ export function simulateDraft(
   const site = facts.siteTypes[siteType]
   return {
     title: clip(`Hoverline for ${name}`, 90),
-    seoTitle: clip(`Drone inspection for ${name} | Hoverline`, 60),
+    seoTitle: clip(`Drone inspection for ${name}`, 60),
     seoDescription: seoDescription(name, site.typicalFindings[0]!),
     blocks: [hero, grid, band, how, faq, closing],
     claims,
