@@ -83,7 +83,7 @@ export const draftOutputSchema = z.object({
     (v) => (Array.isArray(v) ? v.map((b, i) => normalizeBlock(b, i)) : v),
     z.array(blockSchema).min(3).max(10),
   ),
-  claims: z.array(claimOutput).max(48),
+  claims: z.array(claimOutput).max(120),
 })
 
 export type DraftOutput = Omit<z.input<typeof draftOutputSchema>, 'blocks'> & {
