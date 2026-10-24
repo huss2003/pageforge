@@ -32,7 +32,7 @@ const stega: StegaConfig = {
 
 /** Client for draft previews; requires a Viewer token on the server. */
 export function previewClient(): SanityClient | null {
-  const token = process.env.SANITY_API_READ_TOKEN
+  const token = process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_WRITE_TOKEN
   if (!client || !token) return null
   return client.withConfig({
     token,

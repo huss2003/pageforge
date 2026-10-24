@@ -6,7 +6,7 @@ import { client } from '@/sanity/lib/client'
  * preview secret against the dataset (needs a Viewer token), then turns on
  * Next.js draft mode so pages read drafts with visual-editing overlays.
  */
-const token = process.env.SANITY_API_READ_TOKEN
+const token = process.env.SANITY_API_READ_TOKEN || process.env.SANITY_API_WRITE_TOKEN
 
 export const GET =
   client && token

@@ -10,7 +10,8 @@ export default defineConfig({
     },
   },
   test: {
-    include: ['test/**/*.test.ts'],
     environment: 'node',
+    include: ['test/**/*.test.ts', 'lib/**/*.test.ts'],
+    exclude: ['node_modules/**', '.next/**'],
   },
 })
