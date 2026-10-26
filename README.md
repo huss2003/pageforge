@@ -6,6 +6,8 @@ PageForge runs the marketing site of **Hoverline**, a fictional drone-inspection
 
 **Live demo:** <https://pageforge-hazel.vercel.app/abm> (sandbox workspace, pick a role)
 
+**Demo video (2 min):** [docs/demo-video.mp4](docs/demo-video.mp4) walks through the live demo. It is narrated with a text-to-speech voice.
+
 ## The 2-minute demo
 
 1. Open `/abm`, choose **Marketer**, click **Use the Northstar example** and save the brief.
